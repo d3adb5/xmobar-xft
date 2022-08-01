@@ -138,7 +138,7 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
     monitors, visit the [[./doc/plugins.org][plugins index]].
 
   - For more information on how to use xmobar as a Haskell library see the
-    [[file:doc/using-haskell.org][using Haskell docs]].
+    [[file:doc/using-haskell.org][using Haskell guide]].
 
   - If you want to know how to contribute to the xmobar project, check out
     [[contributing.org][contributing]].
