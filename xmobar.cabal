@@ -253,8 +253,8 @@ library
        build-depends: alsa-mixer >= 0.3 && < 0.4
        build-depends: alsa-core == 0.5.*,
                       process >= 1.4.3.0
-       other-modules: Xmobar.Plugins.Monitors.Volume
-                        Xmobar.Plugins.Monitors.Alsa
+       other-modules: Xmobar.Plugins.Monitors.Volume,
+                      Xmobar.Plugins.Monitors.Alsa
        cpp-options: -DALSA
 
     if flag(with_datezone) || flag(all_extensions)
@@ -327,14 +327,14 @@ executable xmobar
     default-language:   Haskell2010
     hs-source-dirs:     app
     main-is:            Main.hs
-    build-depends:      base,
-                        containers,
+    build-depends:      X11,
                         async,
-                        X11,
+                        base,
+                        containers,
                         directory,
                         filepath,
-                        unix,
                         parsec,
+                        unix,
                         xmobar
 
     ghc-options: -funbox-strict-fields -Wall -fno-warn-unused-do-bind
@@ -354,25 +354,25 @@ test-suite XmobarTest
   type:           exitcode-stdio-1.0
   hs-source-dirs: src, test
   main-is:        Spec.hs
-  build-depends: base,
-                 containers,
-                 regex-compat,
-                 process,
-                 old-locale,
+  build-depends: X11,
+                 async,
+                 base,
                  bytestring,
+                 containers,
                  directory,
-                 unix,
-                 time,
                  filepath,
-                 transformers,
-                 X11,
+                 hspec == 2.*,
                  mtl,
+                 old-locale,
                  parsec,
                  parsec-numbers,
+                 process,
+                 regex-compat,
                  stm,
-                 async,
                  temporary,
-                 hspec == 2.*,
+                 time,
+                 transformers,
+                 unix,
                  xmobar
 
   other-modules: Xmobar.Plugins.Monitors.CommonSpec
@@ -412,5 +412,5 @@ benchmark xmobarbench
   hs-source-dirs:
       bench
   ghc-options: -funbox-strict-fields -Wall -fno-warn-unused-do-bind -O2
-  build-depends: base, gauge, xmobar, mtl, time
+  build-depends: base, gauge, mtl, time, xmobar
   default-language: Haskell2010
