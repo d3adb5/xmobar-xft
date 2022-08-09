@@ -17,11 +17,14 @@ cabal-version:      >= 1.10
 build-type:         Simple
 
 extra-source-files: readme.org, changelog.md,
-                    doc/quick-start.org, doc/plugins.org
-                    examples/padding-icon.sh,
-                    examples/xmobar.config,
-                    examples/xmobar.hs,
-                    examples/xmonadpropwrite.hs
+                    doc/quick-start.org,
+                    doc/plugins.org,
+                    doc/compiling.org,
+                    doc/using-haskell.org,
+                    etc/padding-icon.sh,
+                    etc/xmobar.config,
+                    etc/xmobar.hs,
+                    etc/xmonadpropwrite.hs
 
 source-repository head
   type:      git

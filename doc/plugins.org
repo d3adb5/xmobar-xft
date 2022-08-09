@@ -1385,9 +1385,9 @@
 
     - Aliases to =PropName=
     - Reads the X property named by =PropName= (a string) and displays its
-      value. The [[../examples/xmonadpropwrite.hs][examples/xmonadpropwrite.hs script]] in xmobar's distribution
-      can be used to set the given property from the output of any other
-      program or script.
+      value. The [[../etc/xmonadpropwrite.hs][etc/xmonadpropwrite.hs script]] in xmobar's distribution can be
+      used to set the given property from the output of any other program or
+      script.
 
 *** =UnsafeXPropertyLog PropName=
 
@@ -1480,7 +1480,7 @@
       =/tmp/xmobar_status= will reveal xmonad for 1.5 seconds and
       temporarily overwrite the window titles.
 
-    - Take a look at [[../examples/status.sh][examples/status.sh]]
+    - Take a look at [[../etc/status.sh][etc/status.sh]]
 
     - Expands environment variables for the pipe path
 

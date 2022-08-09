@@ -75,7 +75,7 @@
   =run= can be used for simpler plugins. If you define only =run= the plugin
   will be run every second. To overwrite this default you just need to
   implement =rate=, which must return the number of tenth of seconds between
-  every successive runs. See [[../examples/xmobar.hs][examples/xmobar.hs]] for an example of a plugin
+  every successive runs. See [[../etc/xmobar.hs][etc/xmobar.hs]] for an example of a plugin
   that runs just once, and [[../src/Xmobar/Plugins/Date.hs][src/Xmobar/Plugins/Date.hs]] for one that
   implements =rate=.
 
@@ -114,7 +114,7 @@
 
   To use your new plugin, you just need to use a pure Haskell configuration
   for xmobar (as explained [[#xmobar-in-haskell][above]]) and load your definitions in your =xmobar.hs=
-  file. You can see an example in [[../examples/xmobar.hs][examples/xmobar.hs]] showing you how to write
+  file. You can see an example in [[../etc/xmobar.hs][etc/xmobar.hs]] showing you how to write
   a Haskell configuration that uses a new plugin, all in one file.
 
   When xmobar runs with the full path to that Haskell file as its argument

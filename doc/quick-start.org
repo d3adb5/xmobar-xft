@@ -3,9 +3,8 @@
 Xmobar can either be configured using the configuration language, or [[file:using-haskell.org][used as a
 Haskell library]] (similar to xmonad) and compiled with your specific
 configuration. For an example of a configuration file using the plain
-configuration language, see [[../examples/xmobar.config][examples/xmobar.config]], and you can have a look at
-[[../examples/xmobar.hs][examples/xmobar.hs]] for an example of how to write your own xmobar using
-Haskell.
+configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you can have a look at
+[[../etc/xmobar.hs][etc/xmobar.hs]] for an example of how to write your own xmobar using Haskell.
 
 * Command Line Options
 
@@ -432,7 +431,7 @@ Haskell.
    Other options are ~Ansi~, ~Pango~, and ~Swaybar~.
 ** Showing xmobar output in Emacs tab or mode line
    Using xmobar's ANSI color text ouput, one can plug it inside Emacs, and
-   display your monitors in the mode line or the tab bar.  The [[../examples/xmobar.el][xmobar.el
+   display your monitors in the mode line or the tab bar.  The [[../etc/xmobar.el][xmobar.el
    package]] provides a simple way of doing it.
 ** Using xmobar in wayland with swaybar or waybar
    :PROPERTIES:
@@ -476,7 +475,7 @@ Haskell.
    dynamically xmobar's size and run it alongside a system tray widget such
    as trayer or stalonetray (although the idea is not limited to trays,
    really). For your convenience, there is a version of Jonas' script in
-   [[../examples/padding-icon.sh][examples/padding-icon.sh]].
+   [[../etc/padding-icon.sh][etc/padding-icon.sh]].
 
 ** Signal handling
 
