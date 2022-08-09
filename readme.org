@@ -125,9 +125,10 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
    it is possible to redirect xmobar's output to the standard output,
    optionally with color escape sequences.  In this mode, xmobar can be run
    inside a terminal o console, or its output piped to other applications, and
-   there is no need for an X11 display.  See [[file:doc/quick-start.org#text-mode][Running xmobar in text mode]] for
+   there is no need for an X11 display.  See [[./doc/quick-start.org#text-mode][Running xmobar in text mode]] for
    details.  Using this mode, you could [[file:doc/quick-start.org#wayland][pipe xmobar's output to, say, swaybar]],
-   and use it in wayland.
+   and use it in wayland, or, with the [[./examples/xmobar.el][xmobar.el]] package, show it in Emacs's
+   tab bar.
 
 * Configuration and further documentation
 

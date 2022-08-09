@@ -430,6 +430,10 @@ Haskell.
    #+end_src
 
    Other options are ~Ansi~, ~Pango~, and ~Swaybar~.
+** Showing xmobar output in Emacs tab or mode line
+   Using xmobar's ANSI color text ouput, one can plug it inside Emacs, and
+   display your monitors in the mode line or the tab bar.  The [[../examples/xmobar.el][xmobar.el
+   package]] provides a simple way of doing it.
 ** Using xmobar in wayland with swaybar or waybar
    :PROPERTIES:
    :CUSTOM_ID: wayland
