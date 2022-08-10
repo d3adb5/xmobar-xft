@@ -1,5 +1,5 @@
 name:               xmobar
-version:            0.44.1
+version:            0.44.2
 homepage:           https://codeberg.org/xmobar/xmobar
 synopsis:           A Minimalistic Text Based Status Bar
 description: 	    Xmobar is a minimalistic text based status bar.
@@ -24,7 +24,8 @@ extra-source-files: readme.org, changelog.md,
                     etc/padding-icon.sh,
                     etc/xmobar.config,
                     etc/xmobar.hs,
-                    etc/xmonadpropwrite.hs
+                    etc/xmonadpropwrite.hs,
+                    etc/xmobar.el
 
 source-repository head
   type:      git

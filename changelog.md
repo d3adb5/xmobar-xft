@@ -1,4 +1,9 @@
-## Version 0.44.1 (July, 20022)
+## Version 0.44.2 (August, 2022)
+
+- Documentation improvements.
+- Missing doc files and xmobar.el added to distribution.
+
+## Version 0.44.1 (July, 2022)
 
 Repository moved to Codeberg.  No code changes.
 
