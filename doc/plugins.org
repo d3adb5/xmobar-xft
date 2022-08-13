@@ -390,7 +390,7 @@
 
     - Default template: =Freq: <cpu0>GHz=
 
-    - This monitor requires acpi_cpufreq module to be loaded in kernel
+    - This monitor requires the ~acpi_cpufreq~ module to be loaded in kernel
 
     - Example:
 
