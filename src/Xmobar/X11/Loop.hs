@@ -81,7 +81,7 @@ x11Loop conf = do
   fl <- mapM (initFont d) (additionalFonts conf)
   let ic = Map.empty
       to = textOffset conf
-      ts = textOffsets conf ++ replicate (length fl) (-1)
+      ts = textOffsets conf ++ replicate (length fl) to
 #ifdef XFT
   xftInitFtLibrary
 #endif
