@@ -54,7 +54,7 @@
   :type 'string)
 
 (defcustom xmobar-tab-bar-format
-  '(xmobar-left-string tab-bar-format-align-right xmobar-right-string)
+  '(xmobar-left-string xmobar-elastic-space xmobar-right-string)
   "Format for the tab bar when `xmobar-tab-bar' is t."
   :type 'list)
 
@@ -72,10 +72,12 @@
   (if (featurep 'xterm-color) #'xterm-color-filter #'ansi-color-apply))
 
 (defvar xmobar--old-tab-format tab-bar-format)
+(defvar xmobar--len 0)
 
 (defun xmobar-string () xmobar-string)
 (defun xmobar-right-string () xmobar-string)
 (defun xmobar-left-string () xmobar--left-string)
+(defun xmobar-elastic-space () (make-string (- (frame-width) xmobar--len 3) ? ))
 
 ;;;###autoload
 (define-minor-mode xmobar-mode
@@ -90,8 +92,7 @@
                    (tab-bar-mode 1))
                (or global-mode-string (setq global-mode-string '("")))
                (unless (memq 'xmobar-string global-mode-string)
-                 (setq global-mode-string
-                       (append global-mode-string '(xmobar-string)))))
+                 (add-to-list 'global-mode-string 'xmobar-string t)))
              (xmobar--start))
     (when xmobar-tab-bar (setq tab-bar-format xmobar--old-tab-format))))
 
@@ -101,7 +102,9 @@
     (let* ((str (funcall xmobar--colorize-fn update))
            (strs (and xmobar-tab-split (split-string str xmobar-tab-split))))
       (setq xmobar-string (if strs (cadr strs) str)
-            xmobar--left-string (or (car strs) "")))
+            xmobar--left-string (or (car strs) "")
+            xmobar--len (+ (string-width xmobar--left-string)
+                           (string-width xmobar-string))))
     (force-mode-line-update t)))
 
 (defun xmobar--process-filter (proc string)
@@ -115,7 +118,7 @@
           (insert string)
           (set-marker (process-mark proc) (point)))
         (when (string-match-p "\n$" string)
-          (xmobar--update (buffer-string))
+          (xmobar--update (buffer-substring (point-min) (- (point-max) 1)))
           (delete-region (point-min) (point-max)))))))
 
 (defun xmobar--process-sentinel (proc status)
