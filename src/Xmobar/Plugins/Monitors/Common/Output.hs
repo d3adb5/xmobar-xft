@@ -223,7 +223,7 @@ showPercentBar v x = do
   bw <- getConfigValue barWidth
   let c = bw < 1
       w = if c then length bf else bw
-      len = min w $ round (fromIntegral w * x)
+      len = min w $ (if c then ceiling else round) (fromIntegral w * x)
       bfs = if c then [bf !! max 0 (len - 1)] else take len $ cycle bf
   s <- colorizeString v bfs
   return $ s ++ if c then "" else take (bw - len) (cycle bb)
