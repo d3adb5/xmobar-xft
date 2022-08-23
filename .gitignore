@@ -22,3 +22,5 @@ tags
 /stack.yaml.lock
 /.dir-locals.el
 /doc/web/changelog.html
+/.direnv/
+/.envrc.local
