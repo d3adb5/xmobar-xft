@@ -36,6 +36,10 @@ flag with_xft
   description: Use Xft to render text. UTF-8 support included.
   default: False
 
+flag with_cairo
+  description: Use Cairo and Pango to render text, instead of Xft. UTF-8 support included.
+  default: False
+
 flag with_inotify
   description: inotify support (modern Linux only). Required for the Mail and MBox plugins.
   default: False
@@ -141,6 +145,7 @@ library
                    Xmobar.X11.ColorCache,
                    Xmobar.X11.Window,
                    Xmobar.X11.Draw,
+                   Xmobar.X11.XlibDraw,
                    Xmobar.Plugins.Command,
                    Xmobar.Plugins.BufferedPipeReader,
                    Xmobar.Plugins.CommandReader,
@@ -229,6 +234,12 @@ library
        build-depends: utf8-string >= 0.3 && < 1.1, X11-xft >= 0.2 && < 0.4
        other-modules: Xmobar.X11.MinXft
        cpp-options: -DXFT
+
+    if flag(with_cairo)
+       build-depends: gi-cairo-render >= 0.1.1 && < 0.2
+       other-modules: Xmobar.X11.CairoSurface, Xmobar.X11.CairoDraw
+       x-c2hs-header: xmobar-gtk2hs.h
+       cpp-options: -DCAIRO
 
     if flag(with_inotify) || flag(all_extensions)
        build-depends: hinotify >= 0.3 && < 0.5
