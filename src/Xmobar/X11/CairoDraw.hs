@@ -48,49 +48,73 @@ drawInPixmap p w h s = do
       render = (renderSegments c w h s)
   liftIO $ withXlibSurface disp p vis (fi w) (fi h) render
 
-withMarkup :: Config -> Segment -> String
-withMarkup conf (Text txt, info, idx, _actions) =
+segmentMarkup :: Config -> Segment -> String
+segmentMarkup conf (Text txt, info, idx, _actions) =
   let fnt = fixXft $ indexedFont conf idx
       (fg, bg) = colorComponents conf (tColorsString info)
       attrs = [P.FontDescr fnt, P.FontForeground fg, P.FontBackground bg]
   in P.markSpan attrs $ P.escapeMarkup txt
-withMarkup _ _ = ""
+segmentMarkup _ _ = ""
 
-type FPair = (Position, Actions)
+type LayoutInfo = (Segment, P.PangoLayout, Double, Double)
 
-renderSegment ::
-  Double -> Config -> Surface -> P.PangoLayout -> FPair -> Segment -> IO FPair
-renderSegment mh conf surface lyt (offset,actions) seg@(Text _, _, idx, a) = do
-  _ <- (P.layoutSetMarkup lyt (withMarkup conf seg)) :: IO String
+withLayoutInfo :: P.PangoContext -> Double -> Config -> Segment -> IO LayoutInfo
+withLayoutInfo ctx maxh conf seg@(Text _, inf, idx, a) = do
+  lyt <- P.layoutEmpty ctx
+  mk <- (P.layoutSetMarkup lyt (segmentMarkup conf seg)) :: IO String
   (_, P.PangoRectangle o u w h) <- P.layoutGetExtents lyt
   let voff' = fromIntegral $ indexedOffset conf idx
-      voff = voff' + (mh - h + u) / 2.0
-      hoff = fromIntegral offset
-  C.renderWith surface $ C.moveTo hoff voff >> P.showLayout lyt
-  let end = round $ hoff + o + w
-      actions' = case a of Just as -> (as, offset, end):actions; _ -> actions
-  return (end, actions')
+      voff = voff' + (maxh - h + u) / 2.0
+  return ((Text mk, inf, idx, a), lyt, w - o, voff)
 
-renderSegment _ _ _ _ (offset,actions) (Hspace n, _, _, a) = do
-  let end = offset + n
-      actions' = case a of Just as -> (as, offset, end):actions; _ -> actions
-  return (end, actions')
+withLayoutInfo ctx _ _ seg = do
+  lyt <- P.layoutEmpty ctx
+  let n = case seg of (Hspace w, _, _, _) -> w; _ -> 0
+  return (seg, lyt, fromIntegral n, 0)
 
-renderSegment _h _c _surface _lyt acc _segment = pure acc
+renderLayout :: Surface -> Double -> (Double, Actions)
+             -> LayoutInfo -> IO (Double, Actions)
+renderLayout surface maxoff (off, actions) (segment, lyt, lwidth, voff) = do
+  if off + lwidth > maxoff
+  then return (off, actions)
+  else do
+    C.renderWith surface $ C.moveTo off voff >> P.showLayout lyt
+    let end = round $ off + lwidth
+        (_, _, _, a) = segment
+        actions' = case a of Just as -> (as, round off, end):actions; _ -> actions
+    return (off + lwidth, actions')
 
 background :: Config -> SRGB.Colour Double -> C.Render ()
 background conf colour = do
   RGBS.uncurryRGB C.setSourceRGB (SRGB.toSRGB colour)
   C.paintWithAlpha $ (fromIntegral (alpha conf)) / 255.0
 
-renderSegments ::
-  Config -> Dimension -> Dimension -> [[Segment]] -> Surface -> IO Actions
-renderSegments conf _w h segments surface = do
-  ctx <- P.cairoCreateContext Nothing
-  lyt <- P.layoutEmpty ctx
+renderBackground :: Config -> Surface -> IO ()
+renderBackground conf surface = do
   col <- case CNames.readColourName (bgColor conf) of
            Just c -> return c
            Nothing -> return $ SRGB.sRGB24read (bgColor conf)
   C.renderWith surface (background conf col)
-  let dh = fromIntegral h
-  snd `fmap` foldM (renderSegment dh conf surface lyt) (0, []) (concat segments)
+
+layoutsWidth :: [(Segment, P.PangoLayout, Double, Double)] -> Double
+layoutsWidth = foldl (\a (_,_,w,_) -> a + w) 0
+
+renderSegments ::
+  Config -> Dimension -> Dimension -> [[Segment]] -> Surface -> IO Actions
+renderSegments conf w h segments surface = do
+  let [left, center, right] = take 3 segments
+      dh = fromIntegral h
+      dw = fromIntegral w
+  ctx <- P.cairoCreateContext Nothing
+  llyts <- mapM (withLayoutInfo ctx dh conf) left
+  rlyts <- mapM (withLayoutInfo ctx dh conf) right
+  clyts <- mapM (withLayoutInfo ctx dh conf) center
+  renderBackground conf surface
+  (lend, as) <- foldM (renderLayout surface dw) (0, []) llyts
+  let rw = layoutsWidth rlyts
+      rstart = max (lend + 1) (dw - rw - 1)
+      cmax = rstart - 1
+      cw = layoutsWidth clyts
+      cstart = lend + 1 + max 0 (dw - rw - lend - cw) / 2.0
+  (_, as') <- foldM (renderLayout surface cmax) (cstart, as) clyts
+  snd `fmap` foldM (renderLayout surface dw) (rstart, as') rlyts
