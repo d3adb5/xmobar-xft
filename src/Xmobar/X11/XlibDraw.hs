@@ -38,7 +38,6 @@ import qualified Xmobar.X11.Bitmap as B
 import Xmobar.X11.Types
 import Xmobar.X11.Text
 import Xmobar.X11.ColorCache
-import Xmobar.X11.Window (drawBorder)
 import Xmobar.System.Utils (safeIndex)
 
 #ifdef XFT
@@ -62,6 +61,7 @@ drawInPixmap gc p wid ht ~[left,center,right] = do
         textWidth d (safeIndex fs i) s >>= \tw -> return (Text s,cl,i,fi tw)
       getWidth (Icon s,cl,i,_) = return (Icon s,cl,i,fi $ iconW s)
       getWidth (Hspace s,cl,i,_) = return (Hspace s,cl,i,fi s)
+      fillBackground clr = setForeground d gc clr >> fillRectangle d p gc 0 0 wid ht
 
 #if XFT
   when (alpha c /= 255)
@@ -70,12 +70,9 @@ drawInPixmap gc p wid ht ~[left,center,right] = do
 
   withColors d [bgColor c, borderColor c] $ \[bgcolor, bdcolor] -> do
 #if XFT
-    when (alpha c == 255) $ do
-      liftIO $ setForeground d gc bgcolor
-      liftIO $ fillRectangle d p gc 0 0 wid ht
+    when (alpha c == 255) $ liftIO (fillBackground bgcolor)
 #else
-    liftIO $ setForeground d gc bgcolor
-    liftIO $ fillRectangle d p gc 0 0 wid ht
+    liftIO $ fillBackground bgcolor
 #endif
     -- write to the pixmap the new string
     printStrings p gc fs vs 1 L [] =<< strLn left
@@ -208,6 +205,40 @@ drawBoxes d dr gc ht (b:bs) = do
         drawBoxBorder d dr gc BBRight  offset ht xx lw mgs
       _ -> drawBoxBorder d dr gc bb    offset ht xx lw mgs
   drawBoxes d dr gc ht bs
+
+drawBorder :: Border -> Int -> Display -> Drawable -> GC -> Pixel
+              -> Dimension -> Dimension -> IO ()
+drawBorder b lw d p gc c wi ht =  case b of
+  NoBorder -> return ()
+  TopB       -> drawBorder (TopBM 0) lw d p gc c wi ht
+  BottomB    -> drawBorder (BottomBM 0) lw d p gc c wi ht
+  FullB      -> drawBorder (FullBM 0) lw d p gc c wi ht
+  TopBM m    -> sf >> sla >>
+                 drawLine d p gc 0 (fi m + boff) (fi wi) (fi m + boff)
+  BottomBM m -> let rw = fi ht - fi m + boff in
+                 sf >> sla >> drawLine d p gc 0 rw (fi wi) rw
+  FullBM m   -> let mp = fi m
+                    pad = 2 * fi mp +  fi lw
+                in sf >> sla >>
+                     drawRectangle d p gc mp mp (wi - pad) (ht - pad)
+  where sf    = setForeground d gc c
+        sla   = setLineAttributes d gc (fi lw) lineSolid capNotLast joinMiter
+        boff  = borderOffset b lw
+
+borderOffset :: (Integral a) => Border -> Int -> a
+borderOffset b lw =
+  case b of
+    BottomB    -> negate boffs
+    BottomBM _ -> negate boffs
+    TopB       -> boffs
+    TopBM _    -> boffs
+    _          -> 0
+  where boffs = calcBorderOffset lw
+
+calcBorderOffset :: (Integral a) => Int -> a
+calcBorderOffset = ceiling . (/2) . toDouble
+  where toDouble = fi :: (Integral a) => a -> Double
+
 
 drawBoxBorder :: Display
               -> Drawable

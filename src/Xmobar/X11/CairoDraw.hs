@@ -37,6 +37,7 @@ import Xmobar.X11.CairoSurface
 
 type ActionPos = ([Action], Position, Position)
 type Actions = [ActionPos]
+type LayoutInfo = (Segment, P.PangoLayout, Double, Double)
 
 drawInPixmap :: Pixmap -> Dimension -> Dimension -> [[Segment]] -> X Actions
 drawInPixmap p w h s = do
@@ -56,8 +57,6 @@ segmentMarkup conf (Text txt, info, idx, _actions) =
   in P.markSpan attrs $ P.escapeMarkup txt
 segmentMarkup _ _ = ""
 
-type LayoutInfo = (Segment, P.PangoLayout, Double, Double)
-
 withLayoutInfo :: P.PangoContext -> Double -> Config -> Segment -> IO LayoutInfo
 withLayoutInfo ctx maxh conf seg@(Text _, inf, idx, a) = do
   lyt <- P.layoutEmpty ctx
@@ -74,9 +73,9 @@ withLayoutInfo ctx _ _ seg = do
 
 renderLayout :: Surface -> Double -> (Double, Actions)
              -> LayoutInfo -> IO (Double, Actions)
-renderLayout surface maxoff (off, actions) (segment, lyt, lwidth, voff) = do
+renderLayout surface maxoff (off, actions) (segment, lyt, lwidth, voff) =
   if off + lwidth > maxoff
-  then return (off, actions)
+  then pure (off, actions)
   else do
     C.renderWith surface $ C.moveTo off voff >> P.showLayout lyt
     let end = round $ off + lwidth
@@ -84,17 +83,51 @@ renderLayout surface maxoff (off, actions) (segment, lyt, lwidth, voff) = do
         actions' = case a of Just as -> (as, round off, end):actions; _ -> actions
     return (off + lwidth, actions')
 
+setSourceColor :: RGBS.Colour Double -> C.Render ()
+setSourceColor = RGBS.uncurryRGB C.setSourceRGB . SRGB.toSRGB
+
 background :: Config -> SRGB.Colour Double -> C.Render ()
 background conf colour = do
-  RGBS.uncurryRGB C.setSourceRGB (SRGB.toSRGB colour)
+  setSourceColor colour
   C.paintWithAlpha $ (fromIntegral (alpha conf)) / 255.0
+
+readColourName :: String -> IO (RGBS.Colour Double)
+readColourName str = do
+  case CNames.readColourName str of
+    Just c -> return c
+    Nothing -> return $ SRGB.sRGB24read str
 
 renderBackground :: Config -> Surface -> IO ()
 renderBackground conf surface = do
-  col <- case CNames.readColourName (bgColor conf) of
-           Just c -> return c
-           Nothing -> return $ SRGB.sRGB24read (bgColor conf)
+  col <- readColourName (bgColor conf)
   C.renderWith surface (background conf col)
+
+drawRect :: String -> Double -> (Double, Double, Double, Double) -> C.Render()
+drawRect name wd (x0, y0, x1, y1) = do
+  col <- liftIO $ readColourName name
+  setSourceColor col
+  C.setLineWidth wd
+  C.rectangle x0 y0 x1 y1
+  C.strokePreserve
+
+outerBorder :: Config -> Double -> Double -> C.Render ()
+outerBorder conf w h =  do
+  let r = case border conf of
+            TopB -> (0, 0, w - 1, 0)
+            BottomB -> (0, h - 1, w - 1, h - 1)
+            FullB -> (0, 0, w - 1, h - 1)
+            TopBM m -> (0, fi m, w - 1, fi m)
+            BottomBM m -> (0, h - fi m, w - 1, h - fi m)
+            FullBM m -> (fi m, fi m, w - fi m - 1, h - fi m - 1)
+            NoBorder -> (-1, -1, -1, -1)
+  drawRect (borderColor conf) (fi (borderWidth conf)) r
+  where fi = fromIntegral
+
+renderBorder :: Config -> Double -> Double -> Surface -> IO ()
+renderBorder conf w h surf =
+  case border conf of
+    NoBorder -> return ()
+    _ -> C.renderWith surf (outerBorder conf w h)
 
 layoutsWidth :: [(Segment, P.PangoLayout, Double, Double)] -> Double
 layoutsWidth = foldl (\a (_,_,w,_) -> a + w) 0
@@ -117,4 +150,6 @@ renderSegments conf w h segments surface = do
       cw = layoutsWidth clyts
       cstart = lend + 1 + max 0 (dw - rw - lend - cw) / 2.0
   (_, as') <- foldM (renderLayout surface cmax) (cstart, as) clyts
-  snd `fmap` foldM (renderLayout surface dw) (rstart, as') rlyts
+  (_, as'') <- foldM (renderLayout surface dw) (rstart, as') rlyts
+  when (borderWidth conf > 0) (renderBorder conf dw dh surface)
+  return as''

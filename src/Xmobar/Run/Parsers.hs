@@ -38,8 +38,10 @@ import Xmobar.Run.Actions
 data Widget = Icon String | Text String | Hspace Int32 deriving Show
 
 data BoxOffset = BoxOffset Align Int32 deriving (Eq, Show)
+
 -- margins: Top, Right, Bottom, Left
 data BoxMargins = BoxMargins Int32 Int32 Int32 Int32 deriving (Eq, Show)
+
 data BoxBorder = BBTop
                | BBBottom
                | BBVBoth
@@ -48,13 +50,16 @@ data BoxBorder = BBTop
                | BBHBoth
                | BBFull
                  deriving ( Read, Eq, Show )
+
 data Box = Box BoxBorder BoxOffset CInt String BoxMargins deriving (Eq, Show)
+
 data TextRenderInfo =
     TextRenderInfo { tColorsString   :: String
                    , tBgTopOffset    :: Int32
                    , tBgBottomOffset :: Int32
                    , tBoxes          :: [Box]
                    } deriving Show
+
 type FontIndex   = Int
 
 type Segment = (Widget, TextRenderInfo, FontIndex, Maybe [Action])
