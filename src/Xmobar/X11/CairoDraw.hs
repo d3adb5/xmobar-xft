@@ -71,6 +71,11 @@ renderSegment mh conf surface lyt (offset,actions) seg@(Text _, _, idx, a) = do
       actions' = case a of Just as -> (as, offset, end):actions; _ -> actions
   return (end, actions')
 
+renderSegment _ _ _ _ (offset,actions) (Hspace n, _, _, a) = do
+  let end = offset + n
+      actions' = case a of Just as -> (as, offset, end):actions; _ -> actions
+  return (end, actions')
+
 renderSegment _h _c _surface _lyt acc _segment = pure acc
 
 background :: Config -> SRGB.Colour Double -> C.Render ()
