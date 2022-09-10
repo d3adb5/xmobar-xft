@@ -236,7 +236,9 @@ library
        cpp-options: -DXFT
 
     if flag(with_cairo)
-       build-depends: gi-cairo-render >= 0.1.1 && < 0.2
+       build-depends: cairo >= 0.13 && < 0.14,
+                      pango >= 0.13 && < 0.14,
+                      colour >= 2.3.6
        other-modules: Xmobar.X11.CairoSurface, Xmobar.X11.CairoDraw
        x-c2hs-header: xmobar-gtk2hs.h
        cpp-options: -DCAIRO

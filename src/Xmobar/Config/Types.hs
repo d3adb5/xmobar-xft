@@ -18,6 +18,7 @@ module Xmobar.Config.Types
       Config (..)
     , XPosition (..), Align (..), Border (..), TextOutputFormat (..)
     , SignalChan (..)
+    , indexedFont, indexedOffset
     ) where
 
 import qualified Control.Concurrent.STM as STM
@@ -72,6 +73,16 @@ data Config =
            , verbose :: Bool        -- ^ Emit additional debug messages
            , signal :: SignalChan   -- ^ The signal channel used to send signals to xmobar
            } deriving (Read, Show)
+
+indexedFont :: Config -> Int -> String
+indexedFont config idx =
+  if idx < 1 || idx > length (additionalFonts config)
+  then font config else (additionalFonts config) !! (idx - 1)
+
+indexedOffset :: Config -> Int -> Int
+indexedOffset config idx =
+  if idx < 1 || idx > length (textOffsets config)
+  then textOffset config else (textOffsets config) !! (idx - 1)
 
 data XPosition = Top
                | TopH Int

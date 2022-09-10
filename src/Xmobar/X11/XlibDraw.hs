@@ -18,13 +18,14 @@
 ------------------------------------------------------------------------------
 
 
-module Xmobar.X11.XlibDraw (drawInPixmap) where
+module Xmobar.X11.XlibDraw (drawInPixmap, updateActions) where
 
 import Prelude hiding (lookup)
 import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Data.Map hiding ((\\), foldr, map, filter)
 import Data.List ((\\))
+import Data.Maybe (fromJust, isJust)
 import qualified Data.List.NonEmpty as NE
 
 import Graphics.X11.Xlib hiding (textExtents, textWidth, Segment)
@@ -32,6 +33,7 @@ import Graphics.X11.Xlib.Extras
 
 import Xmobar.Config.Types
 import Xmobar.Run.Parsers hiding (parseString)
+import Xmobar.Run.Actions
 import qualified Xmobar.X11.Bitmap as B
 import Xmobar.X11.Types
 import Xmobar.X11.Text
@@ -232,3 +234,32 @@ drawBoxBorder
     BBLeft   -> drawLine d dr gc (x1 - 1 + ml) p1 (x1 - 1 + ml) (ht + p2)
     BBRight  -> drawLine d dr gc (x2 + lc - 1 - mr) p1 (x2 + lc - 1 - mr) (ht + p2)
     _ -> error "unreachable code"
+
+
+updateActions :: XConf -> Rectangle -> [[Segment]]
+              -> IO [([Action], Position, Position)]
+updateActions conf (Rectangle _ _ wid _) ~[left,center,right] = do
+  let d = display conf
+      fs = fontListS conf
+      strLn :: [Segment] -> IO [(Maybe [Action], Position, Position)]
+      strLn  = liftIO . mapM getCoords
+      iconW i = maybe 0 B.width (lookup i $ iconS conf)
+      getCoords (Text s,_,i,a) =
+        textWidth d (safeIndex fs i) s >>= \tw -> return (a, 0, fi tw)
+      getCoords (Icon s,_,_,a) = return (a, 0, fi $ iconW s)
+      getCoords (Hspace w,_,_,a) = return (a, 0, fi w)
+      partCoord off xs = map (\(a, x, x') -> (fromJust a, x, x')) $
+                         filter (\(a, _,_) -> isJust a) $
+                         scanl (\(_,_,x') (a,_,w') -> (a, x', x' + w'))
+                               (Nothing, 0, off)
+                               xs
+      totSLen = foldr (\(_,_,len) -> (+) len) 0
+      remWidth xs = fi wid - totSLen xs
+      offs = 1
+      offset a xs = case a of
+                     C -> (remWidth xs + offs) `div` 2
+                     R -> remWidth xs
+                     L -> offs
+  fmap concat $ mapM (\(a,xs) ->
+                       (\xs' -> partCoord (offset a xs') xs') <$> strLn xs) $
+                     zip [L,C,R] [left,center,right]

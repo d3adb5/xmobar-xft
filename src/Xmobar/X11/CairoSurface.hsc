@@ -20,8 +20,8 @@ module Xmobar.X11.CairoSurface (withXlibSurface, withBitmapSurface) where
 
 import Graphics.X11.Xlib.Types
 import Graphics.X11.Types
-import GI.Cairo.Render.Types
-import qualified GI.Cairo.Render.Internal as Internal
+import Graphics.Rendering.Cairo.Types
+import qualified Graphics.Rendering.Cairo.Internal as Internal
 
 import Foreign
 import Foreign.C

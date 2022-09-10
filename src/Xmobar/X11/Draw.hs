@@ -25,6 +25,7 @@ import Control.Monad.Reader
 import Graphics.X11.Xlib hiding (Segment)
 
 import Xmobar.Run.Parsers (Segment)
+import Xmobar.Run.Actions (Action)
 import Xmobar.X11.Types
 
 #ifdef CAIRO
@@ -34,8 +35,13 @@ import Xmobar.X11.XlibDraw
 #endif
 
 -- | Draws in and updates the window
-drawInWin :: Rectangle -> [[Segment]] -> X ()
+#ifdef CAIRO
+drawInWin :: Rectangle -> [[Segment]] -> X [([Action], Position, Position)]
 drawInWin (Rectangle _ _ wid ht) segments = do
+#else
+drawInWin :: XConf -> Rectangle -> [[Segment]] -> X [([Action], Position, Position)]
+drawInWin conf bound@(Rectangle _ _ wid ht) segments = do
+#endif
   r <- ask
   let d = display r
       w = window r
@@ -44,8 +50,9 @@ drawInWin (Rectangle _ _ wid ht) segments = do
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
 #ifdef CAIRO
-  drawInPixmap p wid ht segments
+  res <- drawInPixmap p wid ht segments
 #else
+  res <- liftIO $ updateActions conf bound segments
   drawInPixmap gc p wid ht segments
 #endif
   -- copy the pixmap with the new string to the window
@@ -55,3 +62,4 @@ drawInWin (Rectangle _ _ wid ht) segments = do
   liftIO $ freePixmap d p
   -- resync (discard events, we don't read/process events from this display conn)
   liftIO $ sync d True
+  return res
