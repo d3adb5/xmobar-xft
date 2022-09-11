@@ -37,33 +37,28 @@ import Xmobar.X11.XlibDraw
 #endif
 
 -- | Draws in and updates the window
-#ifdef CAIRO
-drawInWin :: Rectangle -> [[Segment]] -> X [([Action], Position, Position)]
-drawInWin (Rectangle _ _ wid ht) segments = do
-#else
-drawInWin :: XConf -> Rectangle -> [[Segment]] -> X [([Action], Position, Position)]
-drawInWin conf bound@(Rectangle _ _ wid ht) segments = do
-#endif
-  r <- ask
-  let d = display r
-      w = window r
-
+drawInWin :: [[Segment]] -> X [([Action], Position, Position)]
+drawInWin segments = do
+  xconf <- ask
+  let d = display xconf
+      w = window xconf
+      (Rectangle _ _ wid ht) = rect xconf
       depth = defaultDepthOfScreen (defaultScreenOfDisplay d)
   p <- liftIO $ createPixmap d w wid ht depth
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
 
 #if defined(XFT) || defined(CAIRO)
-  let xconf = config r
-      alph = alpha xconf
+  let cconf = config xconf
+      alph = alpha cconf
   when (alph < 255)
-     (liftIO $ drawBackground d p (bgColor xconf) alph (Rectangle 0 0 wid ht))
+     (liftIO $ drawBackground d p (bgColor cconf) alph (Rectangle 0 0 wid ht))
 #endif
 
 #ifdef CAIRO
-  res <- drawInPixmap p wid ht segments
+  res <- drawInPixmap gc p segments
 #else
-  res <- liftIO $ updateActions conf bound segments
+  res <- updateActions (rect xconf) segments
   drawInPixmap gc p wid ht segments
 #endif
   -- copy the pixmap with the new string to the window

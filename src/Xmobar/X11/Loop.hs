@@ -112,6 +112,7 @@ x11EventLoop w signal =
         _ -> return ()
 
 -- | Continuously wait for a signal from a thread or an interrupt handler
+-- The list of actions provide also the positions of clickable rectangles
 signalLoop :: XConf
           -> [([Action], Position, Position)]
           -> TMVar SignalType
@@ -121,14 +122,10 @@ signalLoop xc@(XConf d r w fs vos is cfg) as signal tv = do
       typ <- atomically $ takeTMVar signal
       case typ of
          Wakeup -> do
-            str <- updateSegments cfg tv
-            xc' <- updateCache d w is (iconRoot cfg) str >>=
+            segs <- updateSegments cfg tv
+            xc' <- updateCache d w is (iconRoot cfg) segs >>=
                      \c -> return xc { iconS = c }
-#ifdef CAIRO
-            as' <- runX xc' $ drawInWin r str
-#else
-            as' <- runX xc' $ drawInWin xc r str
-#endif
+            as' <- runX xc' $ drawInWin segs
             signalLoop xc' as' signal tv
 
          Reposition ->

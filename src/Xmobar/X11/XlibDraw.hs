@@ -262,9 +262,9 @@ drawBoxBorder
     _ -> error "unreachable code"
 
 
-updateActions :: XConf -> Rectangle -> [[Segment]]
-              -> IO [([Action], Position, Position)]
-updateActions conf (Rectangle _ _ wid _) ~[left,center,right] = do
+updateActions :: Rectangle -> [[Segment]] -> X [([Action], Position, Position)]
+updateActions (Rectangle _ _ wid _) ~[left,center,right] = do
+  conf <- ask
   let d = display conf
       fs = fontListS conf
       strLn :: [Segment] -> IO [(Maybe [Action], Position, Position)]
@@ -286,6 +286,6 @@ updateActions conf (Rectangle _ _ wid _) ~[left,center,right] = do
                      C -> (remWidth xs + offs) `div` 2
                      R -> remWidth xs
                      L -> offs
-  fmap concat $ mapM (\(a,xs) ->
-                       (\xs' -> partCoord (offset a xs') xs') <$> strLn xs) $
-                     zip [L,C,R] [left,center,right]
+  liftIO $ fmap concat $ mapM (\(a,xs) ->
+                          (\xs' -> partCoord (offset a xs') xs') <$> strLn xs) $
+                         zip [L,C,R] [left,center,right]

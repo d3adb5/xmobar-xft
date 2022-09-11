@@ -16,6 +16,9 @@
 
 module Xmobar.X11.CairoDraw (drawInPixmap) where
 
+import Prelude hiding (lookup)
+import Data.Map (lookup)
+
 import Control.Monad.IO.Class
 import Control.Monad.Reader
 
@@ -33,21 +36,45 @@ import Xmobar.Run.Actions (Action)
 import Xmobar.Config.Types
 import Xmobar.Text.Pango (fixXft)
 import Xmobar.X11.Types
+import qualified Xmobar.X11.Bitmap as B
 import Xmobar.X11.CairoSurface
 
 type ActionPos = ([Action], Position, Position)
 type Actions = [ActionPos]
-type LayoutInfo = (Segment, P.PangoLayout, Double, Double)
+type Renderinfo = (Segment, Surface -> Double -> IO (), Double)
+type BitmapDrawer = Double -> Double -> String -> IO ()
 
-drawInPixmap :: Pixmap -> Dimension -> Dimension -> [[Segment]] -> X Actions
-drawInPixmap p w h s = do
+data DrawContext = DC { dcBitmapDrawer :: BitmapDrawer
+                      , dcBitmapLookup :: String -> Maybe B.Bitmap
+                      , dcConfig :: Config
+                      , dcWidth :: Double
+                      , dcHeight :: Double
+                      , dcSegments :: [[Segment]]
+                      }
+
+drawInPixmap :: GC -> Pixmap -> [[Segment]] -> X Actions
+drawInPixmap gc p s = do
   xconf <- ask
   let disp = display xconf
       vis = defaultVisualOfScreen (defaultScreenOfDisplay disp)
-      c = config xconf
-      fi = fromIntegral
-      render = renderSegments c w h s
-  liftIO $ withXlibSurface disp p vis (fi w) (fi h) render
+      (Rectangle _ _ w h) = rect xconf
+      dw = fromIntegral w
+      dh = fromIntegral h
+      dc = DC (drawXBitmap xconf gc p) (lookupXBitmap xconf) (config xconf) dw dh s
+      render = renderSegments dc
+  liftIO $ withXlibSurface disp p vis (fromIntegral w) (fromIntegral h) render
+
+lookupXBitmap :: XConf -> String -> Maybe B.Bitmap
+lookupXBitmap xconf path = lookup path (iconS xconf)
+
+drawXBitmap :: XConf -> GC -> Pixmap -> BitmapDrawer
+drawXBitmap xconf gc p h v path = do
+  let disp = display xconf
+      conf = config xconf
+      fc = fgColor conf
+      bc = bgColor conf
+      bm = lookupXBitmap xconf path
+  liftIO $ maybe (return ()) (B.drawBitmap disp p gc fc bc (round h) (round v)) bm
 
 segmentMarkup :: Config -> Segment -> String
 segmentMarkup conf (Text txt, info, idx, _actions) =
@@ -58,31 +85,39 @@ segmentMarkup conf (Text txt, info, idx, _actions) =
   in P.markSpan attrs' $ P.escapeMarkup txt
 segmentMarkup _ _ = ""
 
-withLayoutInfo :: P.PangoContext -> Double -> Config -> Segment -> IO LayoutInfo
-withLayoutInfo ctx maxh conf seg@(Text _, inf, idx, a) = do
+withRenderinfo :: P.PangoContext -> DrawContext -> Segment -> IO Renderinfo
+withRenderinfo ctx dctx seg@(Text _, inf, idx, a) = do
+  let conf = dcConfig dctx
   lyt <- P.layoutEmpty ctx
   mk <- P.layoutSetMarkup lyt (segmentMarkup conf seg) :: IO String
   (_, P.PangoRectangle o u w h) <- P.layoutGetExtents lyt
   let voff' = fromIntegral $ indexedOffset conf idx
-      voff = voff' + (maxh - h + u) / 2.0
-  return ((Text mk, inf, idx, a), lyt, w - o, voff)
+      voff = voff' + (dcHeight dctx - h + u) / 2.0
+      slyt s pos = C.renderWith s $ C.moveTo pos voff >> P.showLayout lyt
+  return ((Text mk, inf, idx, a), slyt, w - o)
 
-withLayoutInfo ctx _ _ seg = do
-  lyt <- P.layoutEmpty ctx
-  let n = case seg of (Hspace w, _, _, _) -> w; _ -> 0
-  return (seg, lyt, fromIntegral n, 0)
+withRenderinfo _ _ seg@(Hspace w, _, _, _) = do
+  return (seg, \_ _ -> return (), fromIntegral w)
 
-renderLayout :: Surface -> Double -> (Double, Actions)
-             -> LayoutInfo -> IO (Double, Actions)
-renderLayout surface maxoff (off, actions) (segment, lyt, lwidth, voff) =
+withRenderinfo _ dctx seg@(Icon p, _, idx, _) = do
+  let bm = dcBitmapLookup dctx p
+      wd = maybe 0 (fromIntegral . B.width) bm
+      ioff = indexedOffset (dcConfig dctx) idx
+      vpos = dcHeight dctx / 2  - fromIntegral ioff
+      draw _ off = dcBitmapDrawer dctx off vpos p
+  return (seg, draw, wd)
+
+renderSegment ::
+  Surface -> Double -> (Double, Actions) -> Renderinfo -> IO (Double, Actions)
+renderSegment surface maxoff (off, acts) (segment, render, lwidth) =
   if off + lwidth > maxoff
-  then pure (off, actions)
+  then pure (off, acts)
   else do
-    C.renderWith surface $ C.moveTo off voff >> P.showLayout lyt
+    render surface off
     let end = round $ off + lwidth
         (_, _, _, a) = segment
-        actions' = case a of Just as -> (as, round off, end):actions; _ -> actions
-    return (off + lwidth, actions')
+        acts' = case a of Just as -> (as, round off, end):acts; _ -> acts
+    return (off + lwidth, acts')
 
 setSourceColor :: RGBS.Colour Double -> C.Render ()
 setSourceColor = RGBS.uncurryRGB C.setSourceRGB . SRGB.toSRGB
@@ -130,27 +165,27 @@ renderBorder conf w h surf =
     NoBorder -> return ()
     _ -> C.renderWith surf (outerBorder conf w h)
 
-layoutsWidth :: [(Segment, P.PangoLayout, Double, Double)] -> Double
-layoutsWidth = foldl (\a (_,_,w,_) -> a + w) 0
+layoutsWidth :: [Renderinfo] -> Double
+layoutsWidth = foldl (\a (_,_,w) -> a + w) 0
 
-renderSegments ::
-  Config -> Dimension -> Dimension -> [[Segment]] -> Surface -> IO Actions
-renderSegments conf w h segments surface = do
-  let [left, center, right] = take 3 segments
-      dh = fromIntegral h
-      dw = fromIntegral w
+renderSegments :: DrawContext -> Surface -> IO Actions
+renderSegments dctx surface = do
+  let [left, center, right] = take 3 $ dcSegments dctx
+      dh = dcHeight dctx
+      dw = dcWidth dctx
+      conf = dcConfig dctx
   ctx <- P.cairoCreateContext Nothing
-  llyts <- mapM (withLayoutInfo ctx dh conf) left
-  rlyts <- mapM (withLayoutInfo ctx dh conf) right
-  clyts <- mapM (withLayoutInfo ctx dh conf) center
+  llyts <- mapM (withRenderinfo ctx dctx) left
+  rlyts <- mapM (withRenderinfo ctx dctx) right
+  clyts <- mapM (withRenderinfo ctx dctx) center
   renderBackground conf surface
-  (lend, as) <- foldM (renderLayout surface dw) (0, []) llyts
+  (lend, as) <- foldM (renderSegment surface dw) (0, []) llyts
   let rw = layoutsWidth rlyts
       rstart = max (lend + 1) (dw - rw - 1)
       cmax = rstart - 1
       cw = layoutsWidth clyts
       cstart = lend + 1 + max 0 (dw - rw - lend - cw) / 2.0
-  (_, as') <- foldM (renderLayout surface cmax) (cstart, as) clyts
-  (_, as'') <- foldM (renderLayout surface dw) (rstart, as') rlyts
+  (_, as') <- foldM (renderSegment surface cmax) (cstart, as) clyts
+  (_, as'') <- foldM (renderSegment surface dw) (rstart, as') rlyts
   when (borderWidth conf > 0) (renderBorder conf dw dh surface)
   return as''

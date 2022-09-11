@@ -53,8 +53,9 @@ data Bitmap = Bitmap { width  :: Dimension
                      , bitmapType :: BitmapType
                      }
 
-updateCache :: Display -> Window -> Map FilePath Bitmap -> FilePath ->
-               [[(Widget, TextRenderInfo, Int, Maybe [Action])]] -> IO (Map FilePath Bitmap)
+updateCache :: Display -> Window -> Map FilePath Bitmap -> FilePath
+            -> [[(Widget, TextRenderInfo, Int, Maybe [Action])]]
+            -> IO (Map FilePath Bitmap)
 updateCache dpy win cache iconRoot ps = do
   let paths = map (\(Icon p, _, _, _) -> p) . concatMap (filter icons) $ ps
       icons (Icon _, _, _, _) = True
