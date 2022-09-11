@@ -146,7 +146,6 @@ library
                    Xmobar.X11.Types,
                    Xmobar.X11.Window,
                    Xmobar.X11.XRender,
-                   Xmobar.X11.XlibDraw,
                    Xmobar.Plugins.Command,
                    Xmobar.Plugins.BufferedPipeReader,
                    Xmobar.Plugins.CommandReader,
@@ -244,6 +243,9 @@ library
                       Xmobar.X11.CairoDraw
        x-c2hs-header: xmobar-gtk2hs.h
        cpp-options: -DCAIRO
+
+    if !flag(with_cairo) || flag(with_xft)
+       other-modules: Xmobar.X11.XlibDraw
 
     if flag(with_inotify) || flag(all_extensions)
        build-depends: hinotify >= 0.3 && < 0.5

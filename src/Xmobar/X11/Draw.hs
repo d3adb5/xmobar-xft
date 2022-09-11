@@ -54,10 +54,10 @@ drawInWin conf bound@(Rectangle _ _ wid ht) segments = do
   liftIO $ setGraphicsExposures d gc False
 
 #if defined(XFT) || defined(CAIRO)
-  let conf = config r
-      alph = alpha conf
+  let xconf = config r
+      alph = alpha xconf
   when (alph < 255)
-     (liftIO $ drawBackground d p (bgColor conf) alph (Rectangle 0 0 wid ht))
+     (liftIO $ drawBackground d p (bgColor xconf) alph (Rectangle 0 0 wid ht))
 #endif
 
 #ifdef CAIRO
