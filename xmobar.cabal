@@ -137,14 +137,15 @@ library
                    Xmobar.Text.Swaybar,
                    Xmobar.Text.SwaybarClicks,
                    Xmobar.Text.Output,
-                   Xmobar.X11.Events,
-                   Xmobar.X11.Loop,
-                   Xmobar.X11.Types,
-                   Xmobar.X11.Text,
                    Xmobar.X11.Bitmap,
                    Xmobar.X11.ColorCache,
-                   Xmobar.X11.Window,
                    Xmobar.X11.Draw,
+                   Xmobar.X11.Events,
+                   Xmobar.X11.Loop,
+                   Xmobar.X11.Text,
+                   Xmobar.X11.Types,
+                   Xmobar.X11.Window,
+                   Xmobar.X11.XRender,
                    Xmobar.X11.XlibDraw,
                    Xmobar.Plugins.Command,
                    Xmobar.Plugins.BufferedPipeReader,
@@ -239,7 +240,8 @@ library
        build-depends: cairo >= 0.13 && < 0.14,
                       pango >= 0.13 && < 0.14,
                       colour >= 2.3.6
-       other-modules: Xmobar.X11.CairoSurface, Xmobar.X11.CairoDraw
+       other-modules: Xmobar.X11.CairoSurface,
+                      Xmobar.X11.CairoDraw
        x-c2hs-header: xmobar-gtk2hs.h
        cpp-options: -DCAIRO
 

@@ -53,8 +53,9 @@ segmentMarkup :: Config -> Segment -> String
 segmentMarkup conf (Text txt, info, idx, _actions) =
   let fnt = fixXft $ indexedFont conf idx
       (fg, bg) = colorComponents conf (tColorsString info)
-      attrs = [P.FontDescr fnt, P.FontForeground fg, P.FontBackground bg]
-  in P.markSpan attrs $ P.escapeMarkup txt
+      attrs = [P.FontDescr fnt, P.FontForeground fg]
+      attrs' = if bg == bgColor conf then attrs else P.FontBackground bg:attrs
+  in P.markSpan attrs' $ P.escapeMarkup txt
 segmentMarkup _ _ = ""
 
 withLayoutInfo :: P.PangoContext -> Double -> Config -> Segment -> IO LayoutInfo
@@ -86,21 +87,21 @@ renderLayout surface maxoff (off, actions) (segment, lyt, lwidth, voff) =
 setSourceColor :: RGBS.Colour Double -> C.Render ()
 setSourceColor = RGBS.uncurryRGB C.setSourceRGB . SRGB.toSRGB
 
-background :: Config -> SRGB.Colour Double -> C.Render ()
-background conf colour = do
-  setSourceColor colour
-  C.paintWithAlpha $ (fromIntegral (alpha conf)) / 255.0
-
 readColourName :: String -> IO (RGBS.Colour Double)
 readColourName str = do
   case CNames.readColourName str of
     Just c -> return c
     Nothing -> return $ SRGB.sRGB24read str
 
+background :: Config -> SRGB.Colour Double -> C.Render ()
+background conf colour = do
+  setSourceColor colour
+  C.paintWithAlpha $ (fromIntegral (alpha conf)) / 255.0
+
 renderBackground :: Config -> Surface -> IO ()
 renderBackground conf surface = do
-  col <- readColourName (bgColor conf)
-  C.renderWith surface (background conf col)
+  when (alpha conf >= 255)
+    (readColourName (bgColor conf) >>= C.renderWith surface . background conf)
 
 drawRect :: String -> Double -> (Double, Double, Double, Double) -> C.Render()
 drawRect name wd (x0, y0, x1, y1) = do

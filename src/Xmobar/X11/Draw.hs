@@ -24,9 +24,11 @@ import Control.Monad.Reader
 
 import Graphics.X11.Xlib hiding (Segment)
 
+import Xmobar.Config.Types
 import Xmobar.Run.Parsers (Segment)
 import Xmobar.Run.Actions (Action)
 import Xmobar.X11.Types
+import Xmobar.X11.XRender (drawBackground)
 
 #ifdef CAIRO
 import Xmobar.X11.CairoDraw
@@ -45,10 +47,19 @@ drawInWin conf bound@(Rectangle _ _ wid ht) segments = do
   r <- ask
   let d = display r
       w = window r
+
       depth = defaultDepthOfScreen (defaultScreenOfDisplay d)
   p <- liftIO $ createPixmap d w wid ht depth
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
+
+#if defined(XFT) || defined(CAIRO)
+  let conf = config r
+      alph = alpha conf
+  when (alph < 255)
+     (liftIO $ drawBackground d p (bgColor conf) alph (Rectangle 0 0 wid ht))
+#endif
+
 #ifdef CAIRO
   res <- drawInPixmap p wid ht segments
 #else

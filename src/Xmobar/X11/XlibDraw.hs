@@ -63,11 +63,6 @@ drawInPixmap gc p wid ht ~[left,center,right] = do
       getWidth (Hspace s,cl,i,_) = return (Hspace s,cl,i,fi s)
       fillBackground clr = setForeground d gc clr >> fillRectangle d p gc 0 0 wid ht
 
-#if XFT
-  when (alpha c /= 255)
-     (liftIO $ drawBackground d p (bgColor c) (alpha c) (Rectangle 0 0 wid ht))
-#endif
-
   withColors d [bgColor c, borderColor c] $ \[bgcolor, bdcolor] -> do
 #if XFT
     when (alpha c == 255) $ liftIO (fillBackground bgcolor)
