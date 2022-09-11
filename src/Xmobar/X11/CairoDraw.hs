@@ -46,7 +46,7 @@ drawInPixmap p w h s = do
       vis = defaultVisualOfScreen (defaultScreenOfDisplay disp)
       c = config xconf
       fi = fromIntegral
-      render = (renderSegments c w h s)
+      render = renderSegments c w h s
   liftIO $ withXlibSurface disp p vis (fi w) (fi h) render
 
 segmentMarkup :: Config -> Segment -> String
@@ -61,7 +61,7 @@ segmentMarkup _ _ = ""
 withLayoutInfo :: P.PangoContext -> Double -> Config -> Segment -> IO LayoutInfo
 withLayoutInfo ctx maxh conf seg@(Text _, inf, idx, a) = do
   lyt <- P.layoutEmpty ctx
-  mk <- (P.layoutSetMarkup lyt (segmentMarkup conf seg)) :: IO String
+  mk <- P.layoutSetMarkup lyt (segmentMarkup conf seg) :: IO String
   (_, P.PangoRectangle o u w h) <- P.layoutGetExtents lyt
   let voff' = fromIntegral $ indexedOffset conf idx
       voff = voff' + (maxh - h + u) / 2.0
@@ -88,7 +88,7 @@ setSourceColor :: RGBS.Colour Double -> C.Render ()
 setSourceColor = RGBS.uncurryRGB C.setSourceRGB . SRGB.toSRGB
 
 readColourName :: String -> IO (RGBS.Colour Double)
-readColourName str = do
+readColourName str =
   case CNames.readColourName str of
     Just c -> return c
     Nothing -> return $ SRGB.sRGB24read str
@@ -96,10 +96,10 @@ readColourName str = do
 background :: Config -> SRGB.Colour Double -> C.Render ()
 background conf colour = do
   setSourceColor colour
-  C.paintWithAlpha $ (fromIntegral (alpha conf)) / 255.0
+  C.paintWithAlpha $ fromIntegral (alpha conf) / 255.0
 
 renderBackground :: Config -> Surface -> IO ()
-renderBackground conf surface = do
+renderBackground conf surface =
   when (alpha conf >= 255)
     (readColourName (bgColor conf) >>= C.renderWith surface . background conf)
 

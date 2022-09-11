@@ -77,12 +77,12 @@ data Config =
 indexedFont :: Config -> Int -> String
 indexedFont config idx =
   if idx < 1 || idx > length (additionalFonts config)
-  then font config else (additionalFonts config) !! (idx - 1)
+  then font config else additionalFonts config !! (idx - 1)
 
 indexedOffset :: Config -> Int -> Int
 indexedOffset config idx =
   if idx < 1 || idx > length (textOffsets config)
-  then textOffset config else (textOffsets config) !! (idx - 1)
+  then textOffset config else textOffsets config !! (idx - 1)
 
 data XPosition = Top
                | TopH Int
