@@ -82,10 +82,7 @@ colorComponents conf c =
     (f,',':b) -> (f, b)
     (f,    _) -> (f, bgColor conf)
 
-allParsers :: TextRenderInfo
-           -> FontIndex
-           -> Maybe [Action]
-           -> Parser [Segment]
+allParsers :: TextRenderInfo -> FontIndex -> Maybe [Action] -> Parser [Segment]
 allParsers c f a =  textParser c f a
                 <|> try (iconParser c f a)
                 <|> try (hspaceParser c f a)

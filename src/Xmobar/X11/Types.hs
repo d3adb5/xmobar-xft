@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 -- |
 -- Module: Xmobar.Types
--- Copyright: (c) 2018 Jose Antonio Ortega Ruiz
+-- Copyright: (c) 2018, 2022 Jose Antonio Ortega Ruiz
 -- License: BSD3-style (see LICENSE)
 --
 -- Maintainer: jao@gnu.org
@@ -15,11 +15,10 @@
 ------------------------------------------------------------------------------
 
 
-module Xmobar.X11.Types (X, XConf (..)) where
+module Xmobar.X11.Types (X, XConf (..), Bitmap (..), XFont (..)) where
 
 import Graphics.X11.Xlib
 import Control.Monad.Reader
-import Data.Map
 import qualified Data.List.NonEmpty as NE
 
 import Xmobar.X11.Bitmap
@@ -36,6 +35,6 @@ data XConf =
           , window    :: Window
           , fontListS :: NE.NonEmpty XFont
           , verticalOffsets :: NE.NonEmpty Int
-          , iconS     :: Map FilePath Bitmap
+          , iconCache :: BitmapCache
           , config    :: Config
           }

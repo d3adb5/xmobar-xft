@@ -19,7 +19,7 @@
 module Xmobar.X11.Loop (x11Loop) where
 
 import Prelude hiding (lookup)
-import Graphics.X11.Xlib hiding (textExtents, textWidth, Segment)
+import Graphics.X11.Xlib hiding (textExtents, textWidth, Segment, Button)
 import Graphics.X11.Xlib.Extras
 import Graphics.X11.Xinerama
 import Graphics.X11.Xrandr
@@ -111,59 +111,44 @@ x11EventLoop w signal =
                putTMVar signal (Action (ev_button ev) (fi $ ev_x ev))
         _ -> return ()
 
--- | Continuously wait for a signal from a thread or an interrupt handler
--- The list of actions provide also the positions of clickable rectangles
+-- | Continuously wait for a signal from a thread or an interrupt handler.
+-- The list of actions provides the positions of clickable rectangles,
+-- and there is a mutable variable for received signals and the list
+-- of strings updated by running monitors.
 signalLoop :: XConf
           -> [([Action], Position, Position)]
           -> TMVar SignalType
           -> TVar [String]
           -> IO ()
-signalLoop xc@(XConf d r w fs vos is cfg) as signal tv = do
-      typ <- atomically $ takeTMVar signal
-      case typ of
-         Wakeup -> do
-            segs <- updateSegments cfg tv
-            xc' <- updateCache d w is (iconRoot cfg) segs >>=
-                     \c -> return xc { iconS = c }
-            as' <- runX xc' $ drawInWin segs
-            signalLoop xc' as' signal tv
-
-         Reposition ->
-            reposWindow cfg
-
-         ChangeScreen -> do
-            ncfg <- updateConfigPosition cfg
-            reposWindow ncfg
-
-         Hide   t -> hide   (t*100*1000)
-         Reveal t -> reveal (t*100*1000)
-         Toggle t -> toggle t
-
-         TogglePersistent -> signalLoop
-            xc { config = cfg { persistent = not $ persistent cfg } } as signal tv
-
-         SetAlpha a -> signalLoop xc { config = cfg { alpha = a}} as signal tv
-
-         Action but x -> action but x
-
+signalLoop xc@(XConf d r w fs vos is cfg) actions signal strs = do
+    typ <- atomically $ takeTMVar signal
+    case typ of
+      Wakeup           -> wakeup
+      Action button x  -> runActions actions button x >> loopOn
+      Reposition       -> reposWindow cfg
+      ChangeScreen     -> updateConfigPosition d cfg >>= reposWindow
+      Hide t           -> hiderev t Hide hideWindow
+      Reveal t         -> hiderev t Reveal (showWindow r cfg)
+      Toggle t         -> toggle t
+      TogglePersistent -> updateCfg $ cfg {persistent = not $ persistent cfg}
+      SetAlpha a       -> updateCfg $ cfg {alpha = a}
     where
-        isPersistent = not $ persistent cfg
-        loopOn = signalLoop xc as signal tv
-        hide t
-            | t == 0 =
-                when isPersistent (hideWindow d w) >> loopOn
-            | otherwise = do
-                void $ forkIO
-                     $ threadDelay t >> atomically (putTMVar signal $ Hide 0)
-                loopOn
+        loopOn' xc' = signalLoop xc' actions signal strs
+        loopOn = loopOn' xc
+        updateCfg cfg' = loopOn' (xc {config = cfg'})
 
-        reveal t
-            | t == 0 = do
-                when isPersistent (showWindow r cfg d w)
-                loopOn
+        wakeup =  do
+          segs <- parseSegments cfg strs
+          xc' <- updateIconCache xc segs
+          actions' <- runX xc' $ drawInWin segs
+          signalLoop xc' actions' signal strs
+
+        hiderev t sign op
+            | t == 0 = unless (persistent cfg) (op d w) >> loopOn
             | otherwise = do
                 void $ forkIO
-                     $ threadDelay t >> atomically (putTMVar signal $ Reveal 0)
+                     $ threadDelay (t*100*1000) >>
+                       atomically (putTMVar signal $ sign 0)
                 loopOn
 
         toggle t = do
@@ -173,28 +158,32 @@ signalLoop xc@(XConf d r w fs vos is cfg) as signal tv = do
 
         reposWindow rcfg = do
           r' <- repositionWin d w (NE.head fs) rcfg
-          signalLoop (XConf d r' w fs vos is rcfg) as signal tv
+          signalLoop (XConf d r' w fs vos is rcfg) actions signal strs
 
-        updateConfigPosition ocfg =
-          case position ocfg of
-            OnScreen n o -> do
-              srs <- getScreenInfo d
-              return (if n == length srs
-                       then
-                        (ocfg {position = OnScreen 1 o})
-                       else
-                        (ocfg {position = OnScreen (n+1) o}))
-            o -> return (ocfg {position = OnScreen 1 o})
-
-        action button x = do
-          mapM_ runAction $
-            filter (\(Spawn b _) -> button `elem` b) $
-            concatMap (\(a,_,_) -> a) $
-            filter (\(_, from, to) -> x >= from && x <= to) as
-          loopOn
-
-updateSegments :: Config -> TVar [String] -> IO [[Segment]]
-updateSegments conf v = do
+parseSegments :: Config -> TVar [String] -> IO [[Segment]]
+parseSegments conf v = do
   s <- readTVarIO v
   let l:c:r:_ = s ++ repeat ""
   liftIO $ mapM (parseString conf) [l, c, r]
+
+updateIconCache :: XConf -> [[Segment]] -> IO XConf
+updateIconCache xc@(XConf d _ w _ _ c cfg) segs = do
+  c' <- updateCache d w c (iconRoot cfg) [p | (Icon p, _, _, _) <- concat segs]
+  return $ xc {iconCache = c'}
+
+updateConfigPosition :: Display -> Config -> IO Config
+updateConfigPosition disp cfg =
+  case position cfg of
+    OnScreen n o -> do
+      srs <- getScreenInfo disp
+      return (if n == length srs
+              then (cfg {position = OnScreen 1 o})
+              else (cfg {position = OnScreen (n+1) o}))
+    o -> return (cfg {position = OnScreen 1 o})
+
+runActions :: [([Action], Position, Position)] -> Button -> Position -> IO ()
+runActions actions button pos =
+  mapM_ runAction $
+   filter (\(Spawn b _) -> button `elem` b) $
+   concatMap (\(a,_,_) -> a) $
+   filter (\(_, from, to) -> pos >= from && pos <= to) actions

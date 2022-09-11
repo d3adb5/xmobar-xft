@@ -14,17 +14,16 @@
 module Xmobar.X11.Bitmap
  ( updateCache
  , drawBitmap
- , Bitmap(..)) where
+ , Bitmap(..)
+ , BitmapCache) where
 
 import Control.Monad
 import Control.Monad.Trans(MonadIO(..))
-import Data.Map hiding (map, filter)
-import Graphics.X11.Xlib
+import Data.Map hiding (map)
+import Graphics.X11.Xlib hiding (Segment)
 import System.Directory (doesFileExist)
 import System.FilePath ((</>))
 import System.Mem.Weak ( addFinalizer )
-import Xmobar.Run.Actions (Action)
-import Xmobar.Run.Parsers (TextRenderInfo(..), Widget(..))
 import Xmobar.X11.ColorCache
 
 #ifdef XPM
@@ -53,14 +52,12 @@ data Bitmap = Bitmap { width  :: Dimension
                      , bitmapType :: BitmapType
                      }
 
-updateCache :: Display -> Window -> Map FilePath Bitmap -> FilePath
-            -> [[(Widget, TextRenderInfo, Int, Maybe [Action])]]
-            -> IO (Map FilePath Bitmap)
-updateCache dpy win cache iconRoot ps = do
-  let paths = map (\(Icon p, _, _, _) -> p) . concatMap (filter icons) $ ps
-      icons (Icon _, _, _, _) = True
-      icons _ = False
-      expandPath path@('/':_) = path
+type BitmapCache = Map FilePath Bitmap
+
+updateCache :: Display -> Window -> Map FilePath Bitmap -> FilePath -> [FilePath]
+            -> IO BitmapCache
+updateCache dpy win cache iconRoot paths = do
+  let expandPath path@('/':_) = path
       expandPath path@('.':'/':_) = path
       expandPath path@('.':'.':'/':_) = path
       expandPath path = iconRoot </> path

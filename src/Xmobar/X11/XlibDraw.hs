@@ -56,7 +56,7 @@ drawInPixmap gc p wid ht ~[left,center,right] = do
       fs = fontListS r
       vs = verticalOffsets r
       strLn = liftIO . mapM getWidth
-      iconW i = maybe 0 B.width (lookup i $ iconS r)
+      iconW i = maybe 0 B.width (lookup i $ iconCache r)
       getWidth (Text s,cl,i,_) =
         textWidth d (safeIndex fs i) s >>= \tw -> return (Text s,cl,i,fi tw)
       getWidth (Icon s,cl,i,_) = return (Icon s,cl,i,fi $ iconW s)
@@ -161,7 +161,7 @@ printStrings dr gc fontlist voffs offs a boxes sl@((s,c,i,l):xs) = do
     (Text t) -> liftIO $ printString d dr fontst gc fc bc offset valign ay ht' t alph
     (Icon p) -> liftIO $ maybe (return ())
                            (B.drawBitmap d dr gc fc bc offset valign)
-                           (lookup p (iconS r))
+                           (lookup p (iconCache r))
     (Hspace _) -> liftIO $ return ()
   let triBoxes = tBoxes c
       dropBoxes = filter (\(_,b) -> b `notElem` triBoxes) boxes
@@ -269,7 +269,7 @@ updateActions (Rectangle _ _ wid _) ~[left,center,right] = do
       fs = fontListS conf
       strLn :: [Segment] -> IO [(Maybe [Action], Position, Position)]
       strLn  = liftIO . mapM getCoords
-      iconW i = maybe 0 B.width (lookup i $ iconS conf)
+      iconW i = maybe 0 B.width (lookup i $ iconCache conf)
       getCoords (Text s,_,i,a) =
         textWidth d (safeIndex fs i) s >>= \tw -> return (a, 0, fi tw)
       getCoords (Icon s,_,_,a) = return (a, 0, fi $ iconW s)

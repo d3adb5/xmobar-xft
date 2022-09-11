@@ -65,7 +65,7 @@ drawInPixmap gc p s = do
   liftIO $ withXlibSurface disp p vis (fromIntegral w) (fromIntegral h) render
 
 lookupXBitmap :: XConf -> String -> Maybe B.Bitmap
-lookupXBitmap xconf path = lookup path (iconS xconf)
+lookupXBitmap xconf path = lookup path (iconCache xconf)
 
 drawXBitmap :: XConf -> GC -> Pixmap -> BitmapDrawer
 drawXBitmap xconf gc p h v path = do
