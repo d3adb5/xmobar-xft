@@ -16,10 +16,13 @@
 --
 ------------------------------------------------------------------------------
 
-module Xmobar.X11.CairoSurface (withXlibSurface, withBitmapSurface) where
+module Xmobar.X11.CairoSurface (withXlibSurface
+                               , withBitmapSurface
+                               , setSurfaceDrawable) where
 
 import Graphics.X11.Xlib.Types
 import Graphics.X11.Types
+import Graphics.X11.Xlib (defaultScreenOfDisplay)
 import Graphics.Rendering.Cairo.Types
 import qualified Graphics.Rendering.Cairo.Internal as Internal
 
@@ -33,6 +36,9 @@ foreign import ccall "cairo_xlib_surface_create"
 
 foreign import ccall "cairo_xlib_surface_create_for_bitmap"
    cBitmapCreate :: Display -> Pixmap -> Screen -> CInt -> CInt -> Ptr Surface
+
+foreign import ccall "cairo_xlib_surface_set_drawable"
+   cSetDrawable :: Ptr Surface -> Drawable -> CInt -> CInt -> ()
 
 createXlibSurface :: Display -> Drawable -> Visual -> Int -> Int -> IO Surface
 createXlibSurface d dr v w h =
@@ -50,10 +56,14 @@ createBitmapSurface :: Display -> Pixmap -> Screen -> Int -> Int -> IO Surface
 createBitmapSurface d p s w h =
   mkSurface $ cBitmapCreate d p s (fromIntegral w) (fromIntegral h)
 
-withBitmapSurface ::
-  Display -> Pixmap -> Screen -> Int -> Int -> (Surface -> IO a) -> IO a
-withBitmapSurface d p s w h f = do
-  surface <- createBitmapSurface d p s w h
+withBitmapSurface :: Display -> Pixmap -> Int -> Int -> (Surface -> IO a) -> IO a
+withBitmapSurface d p w h f = do
+  surface <- createBitmapSurface d p (defaultScreenOfDisplay d) w h
   ret <- f surface
   Internal.surfaceDestroy surface
   return ret
+
+setSurfaceDrawable :: Surface -> Drawable -> Int -> Int -> IO ()
+setSurfaceDrawable surface dr w h =
+  withSurface surface $
+    \s -> return $ cSetDrawable s dr (fromIntegral w) (fromIntegral h)
