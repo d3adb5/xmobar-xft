@@ -32,17 +32,15 @@ import qualified Data.Colour.Names as CNames
 import qualified Data.Colour.RGBSpace as RGBS
 
 import Xmobar.Run.Parsers (Segment, Widget(..), colorComponents, tColorsString)
-import Xmobar.Run.Actions (Action)
 import Xmobar.Config.Types
 import Xmobar.Text.Pango (fixXft)
 import Xmobar.X11.Types
 import qualified Xmobar.X11.Bitmap as B
 import Xmobar.X11.CairoSurface
 
-type ActionPos = ([Action], Position, Position)
-type Actions = [ActionPos]
 type Renderinfo = (Segment, Surface -> Double -> IO (), Double)
 type BitmapDrawer = Double -> Double -> String -> IO ()
+type Actions = [ActionPos]
 
 data DrawContext = DC { dcBitmapDrawer :: BitmapDrawer
                       , dcBitmapLookup :: String -> Maybe B.Bitmap

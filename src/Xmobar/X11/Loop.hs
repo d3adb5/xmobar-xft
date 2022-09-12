@@ -181,7 +181,7 @@ updateConfigPosition disp cfg =
               else (cfg {position = OnScreen (n+1) o}))
     o -> return (cfg {position = OnScreen 1 o})
 
-runActions :: [([Action], Position, Position)] -> Button -> Position -> IO ()
+runActions :: [ActionPos] -> Button -> Position -> IO ()
 runActions actions button pos =
   mapM_ runAction $
    filter (\(Spawn b _) -> button `elem` b) $

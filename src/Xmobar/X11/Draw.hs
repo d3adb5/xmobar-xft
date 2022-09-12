@@ -24,11 +24,13 @@ import Control.Monad.Reader
 
 import Graphics.X11.Xlib hiding (Segment)
 
-import Xmobar.Config.Types
 import Xmobar.Run.Parsers (Segment)
-import Xmobar.Run.Actions (Action)
 import Xmobar.X11.Types
+
+#if defined(XFT) || defined(CAIRO)
+import Xmobar.Config.Types
 import Xmobar.X11.XRender (drawBackground)
+#endif
 
 #ifdef CAIRO
 import Xmobar.X11.CairoDraw
@@ -37,7 +39,7 @@ import Xmobar.X11.XlibDraw
 #endif
 
 -- | Draws in and updates the window
-drawInWin :: [[Segment]] -> X [([Action], Position, Position)]
+drawInWin :: [[Segment]] -> X [ActionPos]
 drawInWin segments = do
   xconf <- ask
   let d = display xconf
