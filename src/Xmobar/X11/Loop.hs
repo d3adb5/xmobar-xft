@@ -60,7 +60,7 @@ import Xmobar.Run.Loop (loop)
 import Xmobar.X11.Events(nextEvent')
 #endif
 
-#ifdef XFT
+#ifdef CAIRO
 import Graphics.X11.Xft
 #endif
 
@@ -77,7 +77,7 @@ x11Loop conf = do
   let ic = Map.empty
       to = textOffset conf
       ts = textOffsets conf ++ replicate (length fl) to
-#ifdef XFT
+#ifdef CAIRO
   xftInitFtLibrary
 #endif
   (r,w) <- createWin d fs conf

@@ -27,12 +27,9 @@ import Graphics.X11.Xlib hiding (Segment)
 import Xmobar.Run.Parsers (Segment)
 import Xmobar.X11.Types
 
-#if defined(XFT) || defined(CAIRO)
+#ifdef CAIRO
 import Xmobar.Config.Types
 import Xmobar.X11.XRender (drawBackground)
-#endif
-
-#ifdef CAIRO
 import Xmobar.X11.CairoDraw
 #else
 import Xmobar.X11.XlibDraw
@@ -50,14 +47,11 @@ drawInWin segments = do
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
 
-#if defined(XFT) || defined(CAIRO)
+#ifdef CAIRO
   let cconf = config xconf
       alph = alpha cconf
   when (alph < 255)
      (liftIO $ drawBackground d p (bgColor cconf) alph (Rectangle 0 0 wid ht))
-#endif
-
-#ifdef CAIRO
   res <- drawInPixmap gc p segments
 #else
   res <- updateActions (rect xconf) segments

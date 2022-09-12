@@ -3,7 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Xmobar.X11.Text
--- Copyright   :  (C) 2011, 2012, 2013, 2014, 2015, 2017, 2018 Jose Antonio Ortega Ruiz
+-- Copyright   :  (C) 2011, 2012, 2013, 2014, 2015, 2017, 2018, 2022 Jose Antonio Ortega Ruiz
 --                (C) 2007 Andrea Rossato
 -- License     :  BSD3
 --
@@ -30,7 +30,7 @@ import qualified Graphics.X11.Xlib as Xlib (textExtents, textWidth)
 import Graphics.X11.Xlib.Extras
 import System.Mem.Weak ( addFinalizer )
 
-#if defined XFT
+#ifdef CAIRO
 import Xmobar.X11.MinXft
 import Graphics.X11.Xrender
 #else
@@ -39,7 +39,7 @@ import System.IO(hPutStrLn, stderr)
 
 data XFont = Core FontStruct
            | Utf8 FontSet
-#ifdef XFT
+#ifdef CAIRO
            | Xft  [AXftFont]
 #endif
 
@@ -49,7 +49,7 @@ initFont :: Display -> String -> IO XFont
 initFont d s =
        let xftPrefix = "xft:" in
        if  xftPrefix `isPrefixOf` s then
-#ifdef XFT
+#ifdef CAIRO
            fmap Xft $ initXftFont d s
 #else
            do
@@ -86,7 +86,7 @@ initUtf8Font d s = do
             fallBack :: SomeException -> IO ([String], String, FontSet)
             fallBack = const $ createFontSet d miscFixedFont
 
-#ifdef XFT
+#ifdef CAIRO
 initXftFont :: Display -> String -> IO [AXftFont]
 initXftFont d s = do
   let fontNames = wordsBy (== ',') (drop 4 s)
@@ -106,7 +106,7 @@ initXftFont d s = do
 textWidth :: Display -> XFont -> String -> IO Int
 textWidth _   (Utf8 fs) s = return $ fromIntegral $ wcTextEscapement fs s
 textWidth _   (Core fs) s = return $ fromIntegral $ Xlib.textWidth fs s
-#ifdef XFT
+#ifdef CAIRO
 textWidth dpy (Xft xftdraw) s = do
     gi <- xftTxtExtents' dpy xftdraw s
     return $ xglyphinfo_xOff gi
@@ -121,7 +121,7 @@ textExtents (Utf8 fs) s = do
       ascent  = fromIntegral $ negate (rect_y rl)
       descent = fromIntegral $ rect_height rl + fromIntegral (rect_y rl)
   return (ascent, descent)
-#ifdef XFT
+#ifdef CAIRO
 textExtents (Xft xftfonts) _ = do
   ascent  <- fromIntegral `fmap` xft_ascent'  xftfonts
   descent <- fromIntegral `fmap` xft_descent' xftfonts

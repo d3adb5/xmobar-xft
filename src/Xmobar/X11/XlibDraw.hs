@@ -40,15 +40,10 @@ import Xmobar.X11.Text
 import Xmobar.X11.ColorCache
 import Xmobar.System.Utils (safeIndex)
 
-#ifdef XFT
-import Xmobar.X11.MinXft
-import Graphics.X11.Xrender
-#endif
-
 fi :: (Integral a, Num b) => a -> b
 fi = fromIntegral
 
-drawInPixmap :: GC -> Pixmap -> Dimension -> Dimension -> [[Segment]] -> X()
+drawInPixmap :: GC -> Pixmap -> Dimension -> Dimension -> [[Segment]] -> X ()
 drawInPixmap gc p wid ht ~[left,center,right] = do
   r <- ask
   let c = config r
@@ -61,14 +56,11 @@ drawInPixmap gc p wid ht ~[left,center,right] = do
         textWidth d (safeIndex fs i) s >>= \tw -> return (Text s,cl,i,fi tw)
       getWidth (Icon s,cl,i,_) = return (Icon s,cl,i,fi $ iconW s)
       getWidth (Hspace s,cl,i,_) = return (Hspace s,cl,i,fi s)
-      fillBackground clr = setForeground d gc clr >> fillRectangle d p gc 0 0 wid ht
 
   withColors d [bgColor c, borderColor c] $ \[bgcolor, bdcolor] -> do
-#if XFT
-    when (alpha c == 255) $ liftIO (fillBackground bgcolor)
-#else
-    liftIO $ fillBackground bgcolor
-#endif
+    liftIO $ setForeground d gc bgcolor
+    liftIO $ fillRectangle d p gc 0 0 wid ht
+
     -- write to the pixmap the new string
     printStrings p gc fs vs 1 L [] =<< strLn left
     printStrings p gc fs vs 1 R [] =<< strLn right
@@ -114,18 +106,6 @@ printString d p (Utf8 fs) gc fc bc x y _ _ s a =
       setForeground d gc fc'
       when (a == 255) (setBackground d gc bc')
       liftIO $ wcDrawImageString d p fs gc x y s
-
-#ifdef XFT
-printString dpy drw fs@(Xft fonts) _ fc bc x y ay ht s al =
-  withDrawingColors dpy drw fc bc $ \draw fc' bc' -> do
-    when (al == 255) $ do
-      (a,d)  <- textExtents fs s
-      gi <- xftTxtExtents' dpy fonts s
-      if ay < 0
-        then drawXftRect draw bc' x (y - a) (1 + xglyphinfo_xOff gi) (a + d + 2)
-        else drawXftRect draw bc' x ay (1 + xglyphinfo_xOff gi) ht
-    drawXftString' draw fc' fonts (toInteger x) (toInteger y) s
-#endif
 
 -- | An easy way to print the stuff we need to print
 printStrings :: Drawable

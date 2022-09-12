@@ -59,12 +59,10 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
    Here are all the global configuration options that you can set within
    the =Config= block in your configuration.
 
-   - =font= Name of the font to be used. Use the =xft:= prefix for XFT
-     fonts.
+   - =font= Name of the font to be used.
 
    - =additionalFonts= Haskell-style list of fonts to be used with the
-     =fn=-template. Use the =xft:= prefix for XFT fonts. See also
-     =textOffsets= below. For example:
+     =fn=-template. See also =textOffsets= below. For example:
 
      #+begin_src haskell
        additionalFonts = [iconFont, altIconFont]
@@ -237,10 +235,10 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
       contain markups to change the characters' color.
 
     - =<fc=#FF0000>string</fc>= will print =string= with =#FF0000= color
-      (red). =<fc=#FF0000,#000000>string</fc>= will print =string= in red
-      with a black background (=#000000=). Background absolute offsets can
-      be specified for XFT fonts. =<fc=#FF0000,#000000:0>string</fc>= will
-      have a background matching the bar's height.
+      (red). =<fc=#FF0000,#000000>string</fc>= will print =string= in red with a
+      black background (=#000000=). Background absolute offsets can be specified
+      for fonts. =<fc=#FF0000,#000000:0>string</fc>= will have a background
+      matching the bar's height.
 
     - =<fn=1>string</fn>= will print =string= with the first font from
       =additionalFonts=. The index =0= corresponds to the standard font.

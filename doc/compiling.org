@@ -57,20 +57,27 @@ them to =stack= directly:
    - =with_threaded= Uses GHC's threaded runtime. Use this option if xmobar
      enters a high-CPU regime right after starting.
 
-   - =with_utf8= UTF-8 support. Requires the [[http://hackage.haskell.org/package/utf8-string/][utf8-string]] package.
+   - =with_xft= Antialiased font support.  Deprecated: use =with_cairo= instead.
 
-   - =with_xft= Antialiased fonts. Requires the [[http://hackage.haskell.org/package/X11-xft/][X11-xft]] package. This
-     option automatically enables UTF-8. To use XFT fonts you need to use
-     the =xft:= prefix in the =font= configuration option. For instance:
+   - =with_cairo= Antialiased fonts via Cairo/Pango. Requires the [[http://hackage.haskell.org/package/X11-xft/][X11-xft]]
+     package. This option automatically enables UTF-8. To use XFT fonts you
+     can use their fontconfig name, e.g
 
      #+begin_src haskell
-       font = "xft:Times New Roman-10:italic"
+       font = "Iosevka Medium 10"
+       font = "DejaVu Sans Mono italic 9"
      #+end_src
 
      Or to have fallback fonts, just separate them by commas:
 
      #+begin_src haskell
-       font = "xft:Open Sans:size=9,WenQuanYi Zen Hei:size=9"
+       font = "Open Sans,WenQuanYi Zen Hei 9"
+     #+end_src
+
+     For backwards compatibility, font names with `xft:` are also supported.
+
+     #+begin_src haskell
+       font = "xft:DejaVu Sans Mono-10"
      #+end_src
 
    - =with_mpd= Enables support for the [[http://mpd.wikia.com/][MPD]] daemon. Requires the [[http://hackage.haskell.org/package/libmpd/][libmpd]]

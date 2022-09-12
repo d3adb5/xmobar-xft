@@ -2,7 +2,7 @@
 ------------------------------------------------------------------------------
 -- |
 -- Module: ColorCache
--- Copyright: (c) 2012 Jose Antonio Ortega Ruiz
+-- Copyright: (c) 2012, 2022 Jose Antonio Ortega Ruiz
 -- License: BSD3-style (see LICENSE)
 --
 -- Maintainer: jao@gnu.org
@@ -15,17 +15,7 @@
 --
 ------------------------------------------------------------------------------
 
-#if defined XFT
-
-module Xmobar.X11.ColorCache(withColors, withDrawingColors) where
-
-import Xmobar.X11.MinXft
-
-#else
-
 module Xmobar.X11.ColorCache(withColors) where
-
-#endif
 
 import Data.IORef
 import System.IO.Unsafe (unsafePerformIO)
@@ -67,45 +57,3 @@ withColors :: MonadIO m => Display -> [String] -> ([Pixel] -> m a) -> m a
 withColors d cs f = do
   ps <- mapM (liftIO . initColor d) cs
   f $ map (\(DynPixel _ pixel) -> pixel) ps
-
-#ifdef XFT
-
-type AXftColorCache = [(String, AXftColor)]
-{-# NOINLINE xftColorCache #-}
-xftColorCache :: IORef AXftColorCache
-xftColorCache = unsafePerformIO $ newIORef []
-
-getXftCachedColor :: String -> IO (Maybe AXftColor)
-getXftCachedColor name = lookup name `fmap` readIORef xftColorCache
-
-putXftCachedColor :: String -> AXftColor -> IO ()
-putXftCachedColor name cptr =
-  modifyIORef xftColorCache $ \c -> (name, cptr) : c
-
-initAXftColor' :: Display -> Visual -> Colormap -> String -> IO AXftColor
-initAXftColor' d v cm c = do
-  cc <- getXftCachedColor c
-  c' <- case cc of
-          Just col -> return col
-          _        -> do c'' <- mallocAXftColor d v cm c
-                         putXftCachedColor c c''
-                         return c''
-  return c'
-
-initAXftColor :: Display -> Visual -> Colormap -> String -> IO AXftColor
-initAXftColor d v cm c = handle black $ (initAXftColor' d v cm c)
-  where
-    black :: SomeException -> IO AXftColor
-    black = (const $ initAXftColor' d v cm "black")
-
-withDrawingColors :: -- MonadIO m =>
-                     Display -> Drawable -> String -> String
-                    -> (AXftDraw -> AXftColor -> AXftColor -> IO ()) -> IO ()
-withDrawingColors dpy drw fc bc f = do
-  let screen = defaultScreenOfDisplay dpy
-      colormap = defaultColormapOfScreen screen
-      visual = defaultVisualOfScreen screen
-  fc' <- initAXftColor dpy visual colormap fc
-  bc' <- initAXftColor dpy visual colormap bc
-  withAXftDraw dpy drw visual colormap $ \draw -> f draw fc' bc'
-#endif

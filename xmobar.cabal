@@ -33,11 +33,11 @@ source-repository head
   branch:    master
 
 flag with_xft
-  description: Use Xft to render text. UTF-8 support included.
+  description: Use Xft to render text. Deprecated: use with_cairo instead.
   default: False
 
 flag with_cairo
-  description: Use Cairo and Pango to render text, instead of Xft. UTF-8 support included.
+  description: Use Cairo and Pango to render anti-aliased text.
   default: False
 
 flag with_inotify
@@ -145,7 +145,6 @@ library
                    Xmobar.X11.Text,
                    Xmobar.X11.Types,
                    Xmobar.X11.Window,
-                   Xmobar.X11.XRender,
                    Xmobar.Plugins.Command,
                    Xmobar.Plugins.BufferedPipeReader,
                    Xmobar.Plugins.CommandReader,
@@ -230,21 +229,17 @@ library
     if flag(with_rtsopts)
        cpp-options: -DRTSOPTS
 
-    if flag(with_xft) || flag(all_extensions)
-       build-depends: utf8-string >= 0.3 && < 1.1, X11-xft >= 0.2 && < 0.4
-       other-modules: Xmobar.X11.MinXft
-       cpp-options: -DXFT
-
-    if flag(with_cairo)
+    if flag(with_cairo) || flag(all_extensions) || flag(with_xft)
        build-depends: cairo >= 0.13 && < 0.14,
                       pango >= 0.13 && < 0.14,
-                      colour >= 2.3.6
+                      colour >= 2.3.6,
+                      X11-xft >= 0.2 && < 0.4
        other-modules: Xmobar.X11.CairoSurface,
-                      Xmobar.X11.CairoDraw
-       x-c2hs-header: xmobar-gtk2hs.h
+                      Xmobar.X11.CairoDraw,
+                      Xmobar.X11.XRender,
+                      Xmobar.X11.MinXft
        cpp-options: -DCAIRO
-
-    if !flag(with_cairo) || flag(with_xft)
+    else
        other-modules: Xmobar.X11.XlibDraw
 
     if flag(with_inotify) || flag(all_extensions)

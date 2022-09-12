@@ -26,16 +26,7 @@ import Data.Functor ((<&>))
 
 import Xmobar.Config.Types
 
-#ifdef XFT
 import qualified System.IO as S (readFile)
-#endif
-
-readFileSafe :: FilePath -> IO String
-#ifdef XFT
-readFileSafe = S.readFile
-#else
-readFileSafe = readFile
-#endif
 
 stripComments :: String -> String
 stripComments =
@@ -182,4 +173,4 @@ commandsErr = "commands: this usually means that a command could not" ++
 -- parsed.
 readConfig :: Config -> FilePath -> IO (Either ParseError (Config,[String]))
 readConfig defaultConfig f =
-  liftIO (readFileSafe f) <&> parseConfig defaultConfig
+  liftIO (S.readFile f) <&> parseConfig defaultConfig
