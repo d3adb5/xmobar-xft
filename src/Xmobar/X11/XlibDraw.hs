@@ -48,7 +48,7 @@ drawInPixmap gc p wid ht ~[left,center,right] = do
   r <- ask
   let c = config r
       d = display r
-      fs = fontListS r
+      fs = fontList r
       vs = verticalOffsets r
       strLn = liftIO . mapM getWidth
       iconW i = maybe 0 B.width (lookup i $ iconCache r)
@@ -246,7 +246,7 @@ updateActions :: Rectangle -> [[Segment]] -> X [([Action], Position, Position)]
 updateActions (Rectangle _ _ wid _) ~[left,center,right] = do
   conf <- ask
   let d = display conf
-      fs = fontListS conf
+      fs = fontList conf
       strLn :: [Segment] -> IO [(Maybe [Action], Position, Position)]
       strLn  = liftIO . mapM getCoords
       iconW i = maybe 0 B.width (lookup i $ iconCache conf)

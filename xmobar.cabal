@@ -236,8 +236,7 @@ library
                       X11-xft >= 0.2 && < 0.4
        other-modules: Xmobar.X11.CairoSurface,
                       Xmobar.X11.CairoDraw,
-                      Xmobar.X11.XRender,
-                      Xmobar.X11.MinXft
+                      Xmobar.X11.XRender
        cpp-options: -DCAIRO
     else
        other-modules: Xmobar.X11.XlibDraw

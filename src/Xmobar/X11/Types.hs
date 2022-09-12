@@ -34,7 +34,7 @@ data XConf =
     XConf { display   :: Display
           , rect      :: Rectangle
           , window    :: Window
-          , fontListS :: NE.NonEmpty XFont
+          , fontList  :: NE.NonEmpty XFont
           , verticalOffsets :: NE.NonEmpty Int
           , iconCache :: BitmapCache
           , config    :: Config
