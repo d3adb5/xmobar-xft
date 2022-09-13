@@ -38,8 +38,6 @@ import Xmobar.Config.Types ( persistent
                            , alpha
                            , font
                            , additionalFonts
-                           , textOffset
-                           , textOffsets
                            , position
                            , iconRoot
                            , Config
@@ -74,17 +72,14 @@ x11Loop conf = do
   d <- openDisplay ""
   fs <- initFont d (font conf)
   fl <- mapM (initFont d) (additionalFonts conf)
-  let ic = Map.empty
-      to = textOffset conf
-      ts = textOffsets conf ++ replicate (length fl) to
 #ifdef CAIRO
   xftInitFtLibrary
 #endif
   (r,w) <- createWin d fs conf
-  loop conf (startLoop (XConf d r w (fs :| fl) (to :| ts) ic conf))
+  loop conf (startLoop (XConf d r w (fs :| fl) Map.empty conf))
 
 startLoop :: XConf -> TMVar SignalType -> TVar [String] -> IO ()
-startLoop xcfg@(XConf _ _ w _ _ _ _) sig tv = do
+startLoop xcfg@(XConf _ _ w _ _ _) sig tv = do
     forkThread "X event handler" (x11EventLoop w sig)
     signalLoop xcfg [] sig tv
 
@@ -120,7 +115,7 @@ signalLoop :: XConf
           -> TMVar SignalType
           -> TVar [String]
           -> IO ()
-signalLoop xc@(XConf d r w fs vos is cfg) actions signal strs = do
+signalLoop xc@(XConf d r w fs is cfg) actions signal strs = do
     typ <- atomically $ takeTMVar signal
     case typ of
       Wakeup           -> wakeup
@@ -158,7 +153,7 @@ signalLoop xc@(XConf d r w fs vos is cfg) actions signal strs = do
 
         reposWindow rcfg = do
           r' <- repositionWin d w (NE.head fs) rcfg
-          signalLoop (XConf d r' w fs vos is rcfg) actions signal strs
+          signalLoop (XConf d r' w fs is rcfg) actions signal strs
 
 parseSegments :: Config -> TVar [String] -> IO [[Segment]]
 parseSegments conf v = do
@@ -167,7 +162,7 @@ parseSegments conf v = do
   liftIO $ mapM (parseString conf) [l, c, r]
 
 updateIconCache :: XConf -> [[Segment]] -> IO XConf
-updateIconCache xc@(XConf d _ w _ _ c cfg) segs = do
+updateIconCache xc@(XConf d _ w _ c cfg) segs = do
   c' <- updateCache d w c (iconRoot cfg) [p | (Icon p, _, _, _) <- concat segs]
   return $ xc {iconCache = c'}
 

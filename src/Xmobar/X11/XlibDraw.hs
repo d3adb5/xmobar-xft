@@ -17,7 +17,6 @@
 --
 ------------------------------------------------------------------------------
 
-
 module Xmobar.X11.XlibDraw (drawInPixmap, updateActions) where
 
 import Prelude hiding (lookup)
@@ -49,7 +48,6 @@ drawInPixmap gc p wid ht ~[left,center,right] = do
   let c = config r
       d = display r
       fs = fontList r
-      vs = verticalOffsets r
       strLn = liftIO . mapM getWidth
       iconW i = maybe 0 B.width (lookup i $ iconCache r)
       getWidth (Text s,cl,i,_) =
@@ -62,9 +60,9 @@ drawInPixmap gc p wid ht ~[left,center,right] = do
     liftIO $ fillRectangle d p gc 0 0 wid ht
 
     -- write to the pixmap the new string
-    printStrings p gc fs vs 1 L [] =<< strLn left
-    printStrings p gc fs vs 1 R [] =<< strLn right
-    printStrings p gc fs vs 1 C [] =<< strLn center
+    printStrings p gc fs 1 L [] =<< strLn left
+    printStrings p gc fs 1 R [] =<< strLn right
+    printStrings p gc fs 1 C [] =<< strLn center
     -- draw border if requested
     liftIO $ drawBorder (border c) (borderWidth c) d p gc bdcolor wid ht
 
@@ -93,17 +91,14 @@ printString d p fs gc fc bc x y _ _ s a =
      when (a == 255) (setBackground d gc bc')
      liftIO $ wcDrawImageString d p fs gc x y s
 
--- | An easy way to print the stuff we need to print
-printStrings :: Drawable
-             -> GC
+printStrings :: Drawable -> GC
              -> NE.NonEmpty XFont
-             -> NE.NonEmpty Int
-             -> Position
-             -> Align
+             -> Position -> Align
              -> [((Position, Position), Box)]
-             -> [(Widget, TextRenderInfo, Int, Position)] -> X ()
-printStrings _ _ _ _ _ _ _ [] = return ()
-printStrings dr gc fontlist voffs offs a boxes sl@((s,c,i,l):xs) = do
+             -> [(Widget, TextRenderInfo, Int, Position)]
+             -> X ()
+printStrings _ _ _ _ _ _ [] = return ()
+printStrings dr gc fontlist offs a boxes sl@((s,c,i,l):xs) = do
   r <- ask
   let conf = config r
       d = display r
@@ -112,7 +107,7 @@ printStrings dr gc fontlist voffs offs a boxes sl@((s,c,i,l):xs) = do
       totSLen = foldr (\(_,_,_,len) -> (+) len) 0 sl
       remWidth = fi wid - fi totSLen
       fontst = safeIndex fontlist i
-      voff = safeIndex voffs i
+      voff = indexedOffset conf i
       offset = case a of
                  C -> (remWidth + offs) `div` 2
                  R -> remWidth
@@ -137,35 +132,7 @@ printStrings dr gc fontlist voffs offs a boxes sl@((s,c,i,l):xs) = do
   if Prelude.null xs
     then liftIO $ drawBoxes d dr gc (fromIntegral ht) (dropBoxes ++ boxes')
     else liftIO $ drawBoxes d dr gc (fromIntegral ht) dropBoxes
-  printStrings dr gc fontlist voffs (offs + l) a boxes' xs
-
-drawBoxes :: Display
-          -> Drawable
-          -> GC
-          -> Position
-          -> [((Position, Position), Box)]
-          -> IO ()
-drawBoxes _ _ _ _ [] = return ()
-drawBoxes d dr gc ht (b:bs) = do
-  let (xx, Box bb offset lineWidth fc mgs) = b
-      lw = fromIntegral lineWidth :: Position
-  withColors d [fc] $ \[fc'] -> do
-    setForeground d gc fc'
-    setLineAttributes d gc lineWidth lineSolid capNotLast joinMiter
-    case bb of
-      BBVBoth -> do
-        drawBoxBorder d dr gc BBTop    offset ht xx lw mgs
-        drawBoxBorder d dr gc BBBottom offset ht xx lw mgs
-      BBHBoth -> do
-        drawBoxBorder d dr gc BBLeft   offset ht xx lw mgs
-        drawBoxBorder d dr gc BBRight  offset ht xx lw mgs
-      BBFull  -> do
-        drawBoxBorder d dr gc BBTop    offset ht xx lw mgs
-        drawBoxBorder d dr gc BBBottom offset ht xx lw mgs
-        drawBoxBorder d dr gc BBLeft   offset ht xx lw mgs
-        drawBoxBorder d dr gc BBRight  offset ht xx lw mgs
-      _ -> drawBoxBorder d dr gc bb    offset ht xx lw mgs
-  drawBoxes d dr gc ht bs
+  printStrings dr gc fontlist (offs + l) a boxes' xs
 
 drawBorder :: Border -> Int -> Display -> Drawable -> GC -> Pixel
               -> Dimension -> Dimension -> IO ()
@@ -200,15 +167,34 @@ calcBorderOffset :: (Integral a) => Int -> a
 calcBorderOffset = ceiling . (/2) . toDouble
   where toDouble = fi :: (Integral a) => a -> Double
 
+drawBoxes :: Display -> Drawable -> GC
+          -> Position -> [((Position, Position), Box)]
+          -> IO ()
+drawBoxes _ _ _ _ [] = return ()
+drawBoxes d dr gc ht (b:bs) = do
+  let (xx, Box bb offset lineWidth fc mgs) = b
+      lw = fromIntegral lineWidth :: Position
+  withColors d [fc] $ \[fc'] -> do
+    setForeground d gc fc'
+    setLineAttributes d gc lineWidth lineSolid capNotLast joinMiter
+    case bb of
+      BBVBoth -> do
+        drawBoxBorder d dr gc BBTop    offset ht xx lw mgs
+        drawBoxBorder d dr gc BBBottom offset ht xx lw mgs
+      BBHBoth -> do
+        drawBoxBorder d dr gc BBLeft   offset ht xx lw mgs
+        drawBoxBorder d dr gc BBRight  offset ht xx lw mgs
+      BBFull  -> do
+        drawBoxBorder d dr gc BBTop    offset ht xx lw mgs
+        drawBoxBorder d dr gc BBBottom offset ht xx lw mgs
+        drawBoxBorder d dr gc BBLeft   offset ht xx lw mgs
+        drawBoxBorder d dr gc BBRight  offset ht xx lw mgs
+      _ -> drawBoxBorder d dr gc bb    offset ht xx lw mgs
+  drawBoxes d dr gc ht bs
 
-drawBoxBorder :: Display
-              -> Drawable
-              -> GC
-              -> BoxBorder
-              -> BoxOffset
-              -> Position
-              -> (Position, Position)
-              -> Position
+drawBoxBorder :: Display -> Drawable -> GC
+              -> BoxBorder -> BoxOffset
+              -> Position -> (Position, Position) -> Position
               -> BoxMargins
               -> IO ()
 drawBoxBorder
