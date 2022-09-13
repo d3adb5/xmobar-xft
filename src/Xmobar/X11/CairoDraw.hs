@@ -38,7 +38,7 @@ import Xmobar.X11.Types
 import qualified Xmobar.X11.Bitmap as B
 import Xmobar.X11.CairoSurface
 
-type Renderinfo = (Segment, Surface -> Double -> IO (), Double)
+type Renderinfo = (Segment, Surface -> Double -> Double -> IO (), Double)
 type BitmapDrawer = Double -> Double -> String -> IO ()
 type Actions = [ActionPos]
 
@@ -91,31 +91,33 @@ withRenderinfo ctx dctx seg@(Text _, inf, idx, a) = do
   (_, P.PangoRectangle o u w h) <- P.layoutGetExtents lyt
   let voff' = fromIntegral $ indexedOffset conf idx
       voff = voff' + (dcHeight dctx - h + u) / 2.0
-      slyt s pos = C.renderWith s $ C.moveTo pos voff >> P.showLayout lyt
-  return ((Text mk, inf, idx, a), slyt, w - o)
+      wd = w - o
+      slyt s off mx = do
+        when (off + w > mx) $ do
+          P.layoutSetEllipsize lyt P.EllipsizeEnd
+          P.layoutSetWidth lyt (Just $ mx - off)
+        C.renderWith s $ C.moveTo off voff >> P.showLayout lyt
+  return ((Text mk, inf, idx, a), slyt, wd)
 
 withRenderinfo _ _ seg@(Hspace w, _, _, _) = do
-  return (seg, \_ _ -> return (), fromIntegral w)
+  return (seg, \_ _ _ -> return (), fromIntegral w)
 
 withRenderinfo _ dctx seg@(Icon p, _, _, _) = do
   let bm = dcBitmapLookup dctx p
       wd = maybe 0 (fromIntegral . B.width) bm
       ioff = iconOffset (dcConfig dctx)
       vpos = dcHeight dctx / 2  + fromIntegral ioff
-      draw _ off = dcBitmapDrawer dctx off vpos p
+      draw _ off mx = when (off + wd <= mx) $ dcBitmapDrawer dctx off vpos p
   return (seg, draw, wd)
 
 renderSegment ::
   Surface -> Double -> (Double, Actions) -> Renderinfo -> IO (Double, Actions)
-renderSegment surface maxoff (off, acts) (segment, render, lwidth) =
-  if off + lwidth > maxoff
-  then pure (off, acts)
-  else do
-    render surface off
-    let end = round $ off + lwidth
-        (_, _, _, a) = segment
-        acts' = case a of Just as -> (as, round off, end):acts; _ -> acts
-    return (off + lwidth, acts')
+renderSegment surface maxoff (off, acts) (segment, render, lwidth) = do
+  render surface off maxoff
+  let end = round $ off + lwidth
+      (_, _, _, a) = segment
+      acts' = case a of Just as -> (as, round off, end):acts; _ -> acts
+  return (off + lwidth, acts')
 
 setSourceColor :: RGBS.Colour Double -> C.Render ()
 setSourceColor = RGBS.uncurryRGB C.setSourceRGB . SRGB.toSRGB
