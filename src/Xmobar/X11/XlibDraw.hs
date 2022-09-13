@@ -81,31 +81,17 @@ verticalOffset ht (Icon _) _ _ conf
   | otherwise = return $ fi (ht `div` 2) - 1
 verticalOffset _ (Hspace _) _ voffs _ = return $ fi voffs
 
-printString :: Display
-            -> Drawable
-            -> XFont
-            -> GC
-            -> String
-            -> String
-            -> Position
-            -> Position
-            -> Position
-            -> Position
-            -> String
-            -> Int
+printString :: Display -> Drawable -> XFont -> GC
+            -> String -> String
+            -> Position -> Position -> Position -> Position
+            -> String -> Int
             -> IO ()
-printString d p (Core fs) gc fc bc x y _ _ s a = do
-    setFont d gc $ fontFromFontStruct fs
-    withColors d [fc, bc] $ \[fc', bc'] -> do
-      setForeground d gc fc'
-      when (a == 255) (setBackground d gc bc')
-      drawImageString d p gc x y s
 
-printString d p (Utf8 fs) gc fc bc x y _ _ s a =
-    withColors d [fc, bc] $ \[fc', bc'] -> do
-      setForeground d gc fc'
-      when (a == 255) (setBackground d gc bc')
-      liftIO $ wcDrawImageString d p fs gc x y s
+printString d p fs gc fc bc x y _ _ s a =
+   withColors d [fc, bc] $ \[fc', bc'] -> do
+     setForeground d gc fc'
+     when (a == 255) (setBackground d gc bc')
+     liftIO $ wcDrawImageString d p fs gc x y s
 
 -- | An easy way to print the stuff we need to print
 printStrings :: Drawable
