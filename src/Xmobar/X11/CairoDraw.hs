@@ -97,11 +97,11 @@ withRenderinfo ctx dctx seg@(Text _, inf, idx, a) = do
 withRenderinfo _ _ seg@(Hspace w, _, _, _) = do
   return (seg, \_ _ -> return (), fromIntegral w)
 
-withRenderinfo _ dctx seg@(Icon p, _, idx, _) = do
+withRenderinfo _ dctx seg@(Icon p, _, _, _) = do
   let bm = dcBitmapLookup dctx p
       wd = maybe 0 (fromIntegral . B.width) bm
-      ioff = indexedOffset (dcConfig dctx) idx
-      vpos = dcHeight dctx / 2  - fromIntegral ioff
+      ioff = iconOffset (dcConfig dctx)
+      vpos = dcHeight dctx / 2  + fromIntegral ioff
       draw _ off = dcBitmapDrawer dctx off vpos p
   return (seg, draw, wd)
 
