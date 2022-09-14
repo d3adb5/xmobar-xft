@@ -28,8 +28,6 @@ import Xmobar.Run.Parsers (Segment)
 import Xmobar.X11.Types
 
 #ifdef CAIRO
-import Xmobar.Config.Types
-import Xmobar.X11.XRender (drawBackground)
 import Xmobar.X11.CairoDraw
 #else
 import Xmobar.X11.XlibDraw
@@ -48,10 +46,6 @@ drawInWin segments = do
   liftIO $ setGraphicsExposures d gc False
 
 #ifdef CAIRO
-  let cconf = config xconf
-      alph = alpha cconf
-  when (alph < 255)
-     (liftIO $ drawBackground d p (bgColor cconf) alph (Rectangle 0 0 wid ht))
   res <- drawInPixmap gc p segments
 #else
   res <- updateActions (rect xconf) segments

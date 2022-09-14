@@ -36,6 +36,7 @@ import Xmobar.Config.Types
 import Xmobar.Text.Pango (fixXft)
 import Xmobar.X11.Types
 import qualified Xmobar.X11.Bitmap as B
+import Xmobar.X11.XRender (drawBackground)
 import Xmobar.X11.CairoSurface
 
 type Renderinfo = (Segment, Surface -> Double -> Double -> IO (), Double)
@@ -50,7 +51,21 @@ data DrawContext = DC { dcBitmapDrawer :: BitmapDrawer
                       , dcSegments :: [[Segment]]
                       }
 
+readColourName :: String -> (SRGB.Colour Double, Double)
+readColourName str =
+  case CNames.readColourName str of
+    Just c -> (c, 1.0)
+    Nothing -> case SRGB.sRGB24reads str of
+                 [(c, "")] -> (c, 1.0)
+                 [(c,d)] -> (c, read ("0x" ++ d))
+                 _ ->  (CNames.white, 1.0)
 
+renderBackground :: Display -> Pixmap -> Config -> Dimension -> Dimension -> IO ()
+renderBackground d p conf w h = do
+  let c = bgColor conf
+      (_, a) = readColourName c
+      a' = min (round $ 255 * a) (alpha conf)
+  drawBackground d p c a' (Rectangle 0 0 w h)
 
 drawInPixmap :: GC -> Pixmap -> [[Segment]] -> X Actions
 drawInPixmap gc p s = do
@@ -60,8 +75,10 @@ drawInPixmap gc p s = do
       (Rectangle _ _ w h) = rect xconf
       dw = fromIntegral w
       dh = fromIntegral h
-      dc = DC (drawXBitmap xconf gc p) (lookupXBitmap xconf) (config xconf) dw dh s
+      conf = (config xconf)
+      dc = DC (drawXBitmap xconf gc p) (lookupXBitmap xconf) conf dw dh s
       render = renderSegments dc
+  liftIO $ renderBackground disp p conf w h
   liftIO $ withXlibSurface disp p vis (fromIntegral w) (fromIntegral h) render
 
 lookupXBitmap :: XConf -> String -> Maybe B.Bitmap
@@ -143,21 +160,6 @@ setSourceColor (colour, alph) =
         g = SRGB.channelGreen rgb
         b = SRGB.channelBlue rgb
 
-readColourName :: String -> (SRGB.Colour Double, Double)
-readColourName str =
-  case CNames.readColourName str of
-    Just c -> (c, 1.0)
-    Nothing -> case SRGB.sRGB24reads str of
-                 [(c, "")] -> (c, 1.0)
-                 [(c,d)] -> (c, read ("0x" ++ d))
-                 _ ->  (CNames.white, 1.0)
-
-renderBackground :: Config -> Surface -> IO ()
-renderBackground conf surface =
-  let (c, a) = readColourName (bgColor conf)
-      a' = min a $ fromIntegral (alpha conf) / 255 :: Double
-  in when (a' >= 1) $ C.renderWith surface $ setSourceColor (c, a') >> C.paint
-
 drawRect :: String -> Double -> (Double, Double, Double, Double) -> C.Render()
 drawRect name wd (x0, y0, x1, y1) = do
   setSourceColor (readColourName name)
@@ -197,7 +199,6 @@ renderSegments dctx surface = do
   llyts <- mapM (withRenderinfo ctx dctx) left
   rlyts <- mapM (withRenderinfo ctx dctx) right
   clyts <- mapM (withRenderinfo ctx dctx) center
-  renderBackground conf surface
   (lend, as) <- foldM (renderSegment dctx surface dw) (0, []) llyts
   let rw = layoutsWidth rlyts
       rstart = max (lend + 1) (dw - rw - 1)
