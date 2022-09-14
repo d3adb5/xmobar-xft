@@ -107,13 +107,12 @@ printStrings dr gc fontlist offs a boxes sl@((s,c,i,l):xs) = do
       totSLen = foldr (\(_,_,_,len) -> (+) len) 0 sl
       remWidth = fi wid - fi totSLen
       fontst = safeIndex fontlist i
-      voff = indexedOffset conf i
       offset = case a of
                  C -> (remWidth + offs) `div` 2
                  R -> remWidth
                  L -> offs
       (fc,bc) = colorComponents conf (tColorsString c)
-  valign <- verticalOffset ht s fontst voff conf
+  valign <- verticalOffset ht s fontst (indexedOffset conf i) conf
   let (ht',ay) = case (tBgTopOffset c, tBgBottomOffset c) of
                    (-1,_)  -> (0, -1)
                    (_,-1)  -> (0, -1)
@@ -133,39 +132,6 @@ printStrings dr gc fontlist offs a boxes sl@((s,c,i,l):xs) = do
     then liftIO $ drawBoxes d dr gc (fromIntegral ht) (dropBoxes ++ boxes')
     else liftIO $ drawBoxes d dr gc (fromIntegral ht) dropBoxes
   printStrings dr gc fontlist (offs + l) a boxes' xs
-
-drawBorder :: Border -> Int -> Display -> Drawable -> GC -> Pixel
-              -> Dimension -> Dimension -> IO ()
-drawBorder b lw d p gc c wi ht =  case b of
-  NoBorder -> return ()
-  TopB       -> drawBorder (TopBM 0) lw d p gc c wi ht
-  BottomB    -> drawBorder (BottomBM 0) lw d p gc c wi ht
-  FullB      -> drawBorder (FullBM 0) lw d p gc c wi ht
-  TopBM m    -> sf >> sla >>
-                 drawLine d p gc 0 (fi m + boff) (fi wi) (fi m + boff)
-  BottomBM m -> let rw = fi ht - fi m + boff in
-                 sf >> sla >> drawLine d p gc 0 rw (fi wi) rw
-  FullBM m   -> let mp = fi m
-                    pad = 2 * fi mp +  fi lw
-                in sf >> sla >>
-                     drawRectangle d p gc mp mp (wi - pad) (ht - pad)
-  where sf    = setForeground d gc c
-        sla   = setLineAttributes d gc (fi lw) lineSolid capNotLast joinMiter
-        boff  = borderOffset b lw
-
-borderOffset :: (Integral a) => Border -> Int -> a
-borderOffset b lw =
-  case b of
-    BottomB    -> negate boffs
-    BottomBM _ -> negate boffs
-    TopB       -> boffs
-    TopBM _    -> boffs
-    _          -> 0
-  where boffs = calcBorderOffset lw
-
-calcBorderOffset :: (Integral a) => Int -> a
-calcBorderOffset = ceiling . (/2) . toDouble
-  where toDouble = fi :: (Integral a) => a -> Double
 
 drawBoxes :: Display -> Drawable -> GC
           -> Position -> [((Position, Position), Box)]
@@ -213,6 +179,39 @@ drawBoxBorder
     BBRight  -> drawLine d dr gc (x2 + lc - 1 - mr) p1 (x2 + lc - 1 - mr) (ht + p2)
     _ -> error "unreachable code"
 
+
+drawBorder :: Border -> Int -> Display -> Drawable -> GC -> Pixel
+              -> Dimension -> Dimension -> IO ()
+drawBorder b lw d p gc c wi ht =  case b of
+  NoBorder -> return ()
+  TopB       -> drawBorder (TopBM 0) lw d p gc c wi ht
+  BottomB    -> drawBorder (BottomBM 0) lw d p gc c wi ht
+  FullB      -> drawBorder (FullBM 0) lw d p gc c wi ht
+  TopBM m    -> sf >> sla >>
+                 drawLine d p gc 0 (fi m + boff) (fi wi) (fi m + boff)
+  BottomBM m -> let rw = fi ht - fi m + boff in
+                 sf >> sla >> drawLine d p gc 0 rw (fi wi) rw
+  FullBM m   -> let mp = fi m
+                    pad = 2 * fi mp +  fi lw
+                in sf >> sla >>
+                     drawRectangle d p gc mp mp (wi - pad) (ht - pad)
+  where sf    = setForeground d gc c
+        sla   = setLineAttributes d gc (fi lw) lineSolid capNotLast joinMiter
+        boff  = borderOffset b lw
+
+borderOffset :: (Integral a) => Border -> Int -> a
+borderOffset b lw =
+  case b of
+    BottomB    -> negate boffs
+    BottomBM _ -> negate boffs
+    TopB       -> boffs
+    TopBM _    -> boffs
+    _          -> 0
+  where boffs = calcBorderOffset lw
+
+calcBorderOffset :: (Integral a) => Int -> a
+calcBorderOffset = ceiling . (/2) . toDouble
+  where toDouble = fi :: (Integral a) => a -> Double
 
 updateActions :: Rectangle -> [[Segment]] -> X [([Action], Position, Position)]
 updateActions (Rectangle _ _ wid _) ~[left,center,right] = do

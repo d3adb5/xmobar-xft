@@ -119,10 +119,7 @@ textParser c f a = do s <- many1 $
 -- string of digits (base 10) denoting the length of the raw string,
 -- a literal ":" as digit-string-terminator, the raw string itself, and
 -- then a literal "/>".
-rawParser :: TextRenderInfo
-          -> FontIndex
-          -> Maybe [Action]
-          -> Parser [Segment]
+rawParser :: TextRenderInfo -> FontIndex -> Maybe [Action] -> Parser [Segment]
 rawParser c f a = do
   string "<raw="
   lenstr <- many1 digit
@@ -174,21 +171,28 @@ toButtons = map (\x -> read [x])
 
 -- | Parsers a string wrapped in a color specification.
 colorParser :: TextRenderInfo -> FontIndex -> Maybe [Action] -> Parser [Segment]
-colorParser (TextRenderInfo _ _ _ bs) f a = do
+colorParser (TextRenderInfo _ _ _ bs) fidx a = do
   c <- between (string "<fc=") (string ">") colors
   let colorParts = break (==':') c
   let (ot,ob) = case break (==',') (Prelude.drop 1 $ snd colorParts) of
-             (top,',':btm) -> (top, btm)
-             (top,      _) -> (top, top)
-  s <- manyTill
-       (allParsers (TextRenderInfo (fst colorParts) (fromMaybe (-1) $ readMaybe ot) (fromMaybe (-1) $ readMaybe ob) bs) f a)
-       (try $ string "</fc>")
+                  (top,',':btm) -> (top, btm)
+                  (top,      _) -> (top, top)
+      tri = TextRenderInfo (fst colorParts)
+                           (fromMaybe (-1) $ readMaybe ot)
+                           (fromMaybe (-1) $ readMaybe ob)
+                           bs
+  s <- manyTill (allParsers tri fidx a) (try $ string "</fc>")
   return (concat s)
 
 -- | Parses a string wrapped in a box specification.
 boxParser :: TextRenderInfo -> FontIndex -> Maybe [Action] -> Parser [Segment]
 boxParser (TextRenderInfo cs ot ob bs) f a = do
-  c <- between (string "<box") (string ">") (option "" (many1 (alphaNum <|> char '=' <|> char ' ' <|> char '#' <|> char ',')))
+  c <- between (string "<box") (string ">")
+               (option "" (many1 (alphaNum
+                                  <|> char '='
+                                  <|> char ' '
+                                  <|> char '#'
+                                  <|> char ',')))
   let b = Box BBFull (BoxOffset C 0) 1 cs (BoxMargins 0 0 0 0)
   let g = boxReader b (words c)
   s <- manyTill
@@ -209,7 +213,9 @@ boxParamReader b _ "" = b
 boxParamReader (Box bb off lw fc mgs) "type" val =
   Box (fromMaybe bb $ readMaybe ("BB" ++ val)) off lw fc mgs
 boxParamReader (Box bb (BoxOffset alg off) lw fc mgs) "offset" (a:o) =
-  Box bb (BoxOffset (fromMaybe alg $ readMaybe [a]) (fromMaybe off $ readMaybe o)) lw fc mgs
+  Box bb (BoxOffset align offset) lw fc mgs
+  where offset = fromMaybe off $ readMaybe o
+        align = fromMaybe alg $ readMaybe [a]
 boxParamReader (Box bb off lw fc mgs) "width" val =
   Box bb off (fromMaybe lw $ readMaybe val) fc mgs
 boxParamReader (Box bb off lw _ mgs) "color" val =
