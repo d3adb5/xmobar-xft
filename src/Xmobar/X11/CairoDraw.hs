@@ -29,9 +29,9 @@ import qualified Graphics.Rendering.Pango as P
 
 import qualified Data.Colour.SRGB as SRGB
 import qualified Data.Colour.Names as CNames
-import qualified Data.Colour.RGBSpace as RGBS
 
-import Xmobar.Run.Parsers (Segment, Widget(..), colorComponents, tColorsString)
+import Xmobar.Run.Parsers ( Segment, Widget(..), TextRenderInfo (..)
+                          , colorComponents)
 import Xmobar.Config.Types
 import Xmobar.Text.Pango (fixXft)
 import Xmobar.X11.Types
@@ -49,6 +49,8 @@ data DrawContext = DC { dcBitmapDrawer :: BitmapDrawer
                       , dcHeight :: Double
                       , dcSegments :: [[Segment]]
                       }
+
+
 
 drawInPixmap :: GC -> Pixmap -> [[Segment]] -> X Actions
 drawInPixmap gc p s = do
@@ -110,38 +112,55 @@ withRenderinfo _ dctx seg@(Icon p, _, _, _) = do
       draw _ off mx = when (off + wd <= mx) $ dcBitmapDrawer dctx off vpos p
   return (seg, draw, wd)
 
-renderSegment ::
-  Surface -> Double -> (Double, Actions) -> Renderinfo -> IO (Double, Actions)
-renderSegment surface maxoff (off, acts) (segment, render, lwidth) = do
+renderSegmentBackground ::
+  DrawContext -> Surface -> TextRenderInfo -> Double -> Double -> IO ()
+renderSegmentBackground dctx surf info xbeg xend =
+  when (bg /= bgColor conf && (top >= 0 || bot >= 0)) $
+    C.renderWith surf $ do
+      setSourceColor (readColourName bg)
+      C.rectangle xbeg top (xend - xbeg) (dcHeight dctx - bot - top)
+      C.fillPreserve
+  where conf = dcConfig dctx
+        (_, bg) = colorComponents conf (tColorsString info)
+        top = fromIntegral $ tBgTopOffset info
+        bot = fromIntegral $ tBgBottomOffset info
+
+renderSegment :: DrawContext -> Surface -> Double
+              -> (Double, Actions) -> Renderinfo -> IO (Double, Actions)
+renderSegment dctx surface maxoff (off, acts) (segment, render, lwidth) = do
+  let end = min maxoff (off + lwidth)
+      (_, info, _, a) = segment
+      acts' = case a of Just as -> (as, round off, round end):acts; _ -> acts
+  renderSegmentBackground dctx surface info off end
   render surface off maxoff
-  let end = round $ off + lwidth
-      (_, _, _, a) = segment
-      acts' = case a of Just as -> (as, round off, end):acts; _ -> acts
   return (off + lwidth, acts')
 
-setSourceColor :: RGBS.Colour Double -> C.Render ()
-setSourceColor = RGBS.uncurryRGB C.setSourceRGB . SRGB.toSRGB
+setSourceColor :: (SRGB.Colour Double, Double) -> C.Render ()
+setSourceColor (colour, alph) =
+  C.setSourceRGBA r g b alph
+  where rgb = SRGB.toSRGB colour
+        r = SRGB.channelRed rgb
+        g = SRGB.channelGreen rgb
+        b = SRGB.channelBlue rgb
 
-readColourName :: String -> IO (RGBS.Colour Double)
+readColourName :: String -> (SRGB.Colour Double, Double)
 readColourName str =
   case CNames.readColourName str of
-    Just c -> return c
-    Nothing -> return $ SRGB.sRGB24read str
-
-background :: Config -> SRGB.Colour Double -> C.Render ()
-background conf colour = do
-  setSourceColor colour
-  C.paintWithAlpha $ fromIntegral (alpha conf) / 255.0
+    Just c -> (c, 1.0)
+    Nothing -> case SRGB.sRGB24reads str of
+                 [(c, "")] -> (c, 1.0)
+                 [(c,d)] -> (c, read ("0x" ++ d))
+                 _ ->  (CNames.white, 1.0)
 
 renderBackground :: Config -> Surface -> IO ()
 renderBackground conf surface =
-  when (alpha conf >= 255)
-    (readColourName (bgColor conf) >>= C.renderWith surface . background conf)
+  let (c, a) = readColourName (bgColor conf)
+      a' = min a $ fromIntegral (alpha conf) / 255 :: Double
+  in when (a' >= 1) $ C.renderWith surface $ setSourceColor (c, a') >> C.paint
 
 drawRect :: String -> Double -> (Double, Double, Double, Double) -> C.Render()
 drawRect name wd (x0, y0, x1, y1) = do
-  col <- liftIO $ readColourName name
-  setSourceColor col
+  setSourceColor (readColourName name)
   C.setLineWidth wd
   C.rectangle x0 y0 x1 y1
   C.strokePreserve
@@ -179,13 +198,13 @@ renderSegments dctx surface = do
   rlyts <- mapM (withRenderinfo ctx dctx) right
   clyts <- mapM (withRenderinfo ctx dctx) center
   renderBackground conf surface
-  (lend, as) <- foldM (renderSegment surface dw) (0, []) llyts
+  (lend, as) <- foldM (renderSegment dctx surface dw) (0, []) llyts
   let rw = layoutsWidth rlyts
       rstart = max (lend + 1) (dw - rw - 1)
       cmax = rstart - 1
       cw = layoutsWidth clyts
       cstart = lend + 1 + max 0 (dw - rw - lend - cw) / 2.0
-  (_, as') <- foldM (renderSegment surface cmax) (cstart, as) clyts
-  (_, as'') <- foldM (renderSegment surface dw) (rstart, as') rlyts
+  (_, as') <- foldM (renderSegment dctx surface cmax) (cstart, as) clyts
+  (_, as'') <- foldM (renderSegment dctx surface dw) (rstart, as') rlyts
   when (borderWidth conf > 0) (renderBorder conf dw dh surface)
   return as''
