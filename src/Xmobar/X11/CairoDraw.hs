@@ -238,7 +238,7 @@ drawBoxes dctx surf ((from, to, b):(from', to', b'):bxs) =
   if to < from' || b /= b'
   then do drawBoxes' dctx surf (from, to, b)
           drawBoxes dctx surf $ (from', to', b'):bxs
-  else do drawBoxes dctx surf $ (from, to', b'):bxs
+  else drawBoxes dctx surf $ (from, to', b'):bxs
 
 drawBoxes dctx surf [bi] = drawBoxes' dctx surf bi
 
