@@ -67,13 +67,6 @@ readColourName str =
                  [(c,d)] -> (c, read ("0x" ++ d))
                  _ ->  (CNames.white, 1.0)
 
-renderBackground :: Display -> Pixmap -> Config -> Dimension -> Dimension -> IO ()
-renderBackground d p conf w h = do
-  let c = bgColor conf
-      (_, a) = readColourName c
-      a' = min (round $ 255 * a) (alpha conf)
-  drawBackground d p c a' (Rectangle 0 0 w h)
-
 drawInPixmap :: GC -> Pixmap -> [[Segment]] -> X Actions
 drawInPixmap gc p s = do
   xconf <- ask
@@ -85,7 +78,7 @@ drawInPixmap gc p s = do
       conf = config xconf
       dc = DC (drawXBitmap xconf gc p) (lookupXBitmap xconf) conf dw dh s
       render = drawSegments dc
-  liftIO $ renderBackground disp p conf w h
+  liftIO $ drawBackground disp p (bgColor conf) (alpha conf) (Rectangle 0 0 w h)
   liftIO $ withXlibSurface disp p vis (fromIntegral w) (fromIntegral h) render
 
 lookupXBitmap :: XConf -> String -> Maybe B.Bitmap
@@ -125,7 +118,7 @@ withRenderinfo ctx dctx seg@(Text _, inf, idx, a) = do
         C.renderWith s $ C.moveTo off voff >> P.showLayout lyt
   return ((Text mk, inf, idx, a), slyt, wd)
 
-withRenderinfo _ _ seg@(Hspace w, _, _, _) = do
+withRenderinfo _ _ seg@(Hspace w, _, _, _) =
   return (seg, \_ _ _ -> return (), fromIntegral w)
 
 withRenderinfo _ dctx seg@(Icon p, _, _, _) = do
@@ -232,7 +225,7 @@ drawBoxes' :: DrawContext -> Surface -> (Double, Double, [Box]) -> IO ()
 drawBoxes' dctx surf (from, to, bs) = mapM_ (drawBox dctx surf from to) bs
 
 drawBoxes :: DrawContext -> Surface -> Boxes -> IO ()
-drawBoxes dctx surf ((from, to, b):(from', to', b'):bxs) = do
+drawBoxes dctx surf ((from, to, b):(from', to', b'):bxs) =
   if to < from'
   then do drawBoxes' dctx surf (from, to, b)
           drawBoxes dctx surf $ (from', to', b'):bxs
