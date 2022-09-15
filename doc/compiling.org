@@ -57,8 +57,8 @@ them to =stack= directly:
    - =with_threaded= Uses GHC's threaded runtime. Use this option if xmobar
      enters a high-CPU regime right after starting.
 
-   - =with_cairo= Antialiased fonts via Cairo/Pango. Requires the [[http://hackage.haskell.org/package/X11-xft/][X11-xft]]
-     package. To use XFT fonts you can use their fontconfig name, e.g
+   - =with_cairo= Antialiased fonts via Cairo/Pango. For fonts, you can use
+     their fontconfig name, e.g
 
      #+begin_src haskell
        font = "Iosevka Medium 10"
@@ -76,6 +76,9 @@ them to =stack= directly:
      #+begin_src haskell
        font = "xft:DejaVu Sans Mono-10"
      #+end_src
+
+   - =with_xrender= Enables the main bar background alpha parameter.  Requires
+     the [[http://hackage.haskell.org/package/X11-xft/][X11-xft]] package.
 
    - =with_mpd= Enables support for the [[http://mpd.wikia.com/][MPD]] daemon. Requires the [[http://hackage.haskell.org/package/libmpd/][libmpd]]
      package.

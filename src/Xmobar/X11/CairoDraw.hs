@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 ------------------------------------------------------------------------------
 -- |
 -- Module: Xmobar.X11.CairoDraw
@@ -43,7 +44,9 @@ import Xmobar.Config.Types
 import Xmobar.Text.Pango (fixXft)
 import Xmobar.X11.Types
 import qualified Xmobar.X11.Bitmap as B
+#ifdef XRENDER
 import Xmobar.X11.XRender (drawBackground)
+#endif
 import Xmobar.X11.CairoSurface
 
 type Renderinfo = (Segment, Surface -> Double -> Double -> IO (), Double)
@@ -78,7 +81,9 @@ drawInPixmap gc p s = do
       conf = config xconf
       dc = DC (drawXBitmap xconf gc p) (lookupXBitmap xconf) conf dw dh s
       render = drawSegments dc
+#ifdef XRENDER
   liftIO $ drawBackground disp p (bgColor conf) (alpha conf) (Rectangle 0 0 w h)
+#endif
   liftIO $ withXlibSurface disp p vis (fromIntegral w) (fromIntegral h) render
 
 lookupXBitmap :: XConf -> String -> Maybe B.Bitmap
@@ -193,7 +198,7 @@ drawSegment dctx surface maxoff (off, acts, boxs) (segment, render, lwidth) = do
 
 setSourceColor :: (SRGB.Colour Double, Double) -> C.Render ()
 setSourceColor (colour, alph) =
-  C.setSourceRGBA r g b alph
+  if alph < 1 then C.setSourceRGBA r g b alph else C.setSourceRGB r g b
   where rgb = SRGB.toSRGB colour
         r = SRGB.channelRed rgb
         g = SRGB.channelGreen rgb
@@ -235,6 +240,13 @@ drawBoxes dctx surf [bi] = drawBoxes' dctx surf bi
 
 drawBoxes _ _ [] = return ()
 
+#ifndef XRENDER
+drawCairoBackground :: DrawContext -> Surface -> IO ()
+drawCairoBackground dctx surf = do
+  let (c, _) = readColourName (bgColor (dcConfig dctx))
+  C.renderWith surf $ setSourceColor (c, 1.0) >> C.paint
+#endif
+
 drawSegments :: DrawContext -> Surface -> IO Actions
 drawSegments dctx surf = do
   let [left, center, right] = take 3 $ dcSegments dctx
@@ -245,6 +257,9 @@ drawSegments dctx surf = do
   llyts <- mapM (withRenderinfo ctx dctx) left
   rlyts <- mapM (withRenderinfo ctx dctx) right
   clyts <- mapM (withRenderinfo ctx dctx) center
+#ifndef XRENDER
+  drawCairoBackground dctx surf
+#endif
   (lend, as, bx) <- foldM (drawSegment dctx surf dw) (0, [], []) llyts
   let rw = layoutsWidth rlyts
       rstart = max (lend + 1) (dw - rw - 1)
@@ -253,7 +268,6 @@ drawSegments dctx surf = do
       cstart = lend + 1 + max 0 (dw - rw - lend - cw) / 2.0
   (_, as', bx') <- foldM (drawSegment dctx surf cmax) (cstart, as, bx) clyts
   (_, as'', bx'') <- foldM (drawSegment dctx surf dw) (rstart, as', bx') rlyts
-  -- putStrLn $ show (reverse bx'')
   drawBoxes dctx surf (reverse bx'')
   when (borderWidth conf > 0) (drawBorder conf dw dh surf)
   return as''

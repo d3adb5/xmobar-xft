@@ -32,6 +32,9 @@ source-repository head
   location:  git://codeberg.org/xmobar/xmobar.git
   branch:    master
 
+flag with_xrender
+  description: Use XRender for alpha background pseudo-transparency.
+
 flag with_cairo
   description: Use Cairo and Pango to render anti-aliased text.
 
@@ -224,14 +227,17 @@ library
     if flag(with_rtsopts)
        cpp-options: -DRTSOPTS
 
+    if flag(with_xrender)
+       build-depends: X11-xft >= 0.2
+       other-modules: Xmobar.X11.XRender
+       cpp-options: -DXRENDER
+
     if flag(with_cairo)
        build-depends: cairo >= 0.13,
                       pango >= 0.13,
-                      colour >= 2.3.6,
-                      X11-xft >= 0.2
+                      colour >= 2.3.6
        other-modules: Xmobar.X11.CairoSurface,
-                      Xmobar.X11.CairoDraw,
-                      Xmobar.X11.XRender
+                      Xmobar.X11.CairoDraw
        cpp-options: -DCAIRO
     else
        other-modules: Xmobar.X11.XlibDraw

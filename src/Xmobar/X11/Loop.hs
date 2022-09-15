@@ -58,10 +58,6 @@ import Xmobar.Run.Loop (loop)
 import Xmobar.X11.Events(nextEvent')
 #endif
 
-#ifdef CAIRO
-import Graphics.X11.Xft
-#endif
-
 runX :: XConf -> X a -> IO a
 runX xc f = runReaderT f xc
 
@@ -72,9 +68,6 @@ x11Loop conf = do
   d <- openDisplay ""
   fs <- initFont d (font conf)
   fl <- mapM (initFont d) (additionalFonts conf)
-#ifdef CAIRO
-  xftInitFtLibrary
-#endif
   (r,w) <- createWin d fs conf
   loop conf (startLoop (XConf d r w (fs :| fl) Map.empty conf))
 
