@@ -20,7 +20,7 @@ module Xmobar.X11.CairoDraw (drawInPixmap) where
 import Prelude hiding (lookup)
 
 import Data.Map (lookup)
-import Data.List (nub)
+
 import qualified Data.Colour.SRGB as SRGB
 import qualified Data.Colour.Names as CNames
 
@@ -61,15 +61,6 @@ data DrawContext = DC { dcBitmapDrawer :: BitmapDrawer
                       , dcSegments :: [[Segment]]
                       }
 
-readColourName :: String -> (SRGB.Colour Double, Double)
-readColourName str =
-  case CNames.readColourName str of
-    Just c -> (c, 1.0)
-    Nothing -> case SRGB.sRGB24reads str of
-                 [(c, "")] -> (c, 1.0)
-                 [(c,d)] -> (c, read ("0x" ++ d))
-                 _ ->  (CNames.white, 1.0)
-
 drawInPixmap :: GC -> Pixmap -> [[Segment]] -> X Actions
 drawInPixmap gc p s = do
   xconf <- ask
@@ -86,9 +77,6 @@ drawInPixmap gc p s = do
 #endif
   liftIO $ withXlibSurface disp p vis (fromIntegral w) (fromIntegral h) render
 
-lookupXBitmap :: XConf -> String -> Maybe B.Bitmap
-lookupXBitmap xconf path = lookup path (iconCache xconf)
-
 drawXBitmap :: XConf -> GC -> Pixmap -> BitmapDrawer
 drawXBitmap xconf gc p h v path = do
   let disp = display xconf
@@ -97,6 +85,39 @@ drawXBitmap xconf gc p h v path = do
       bc = bgColor conf
       bm = lookupXBitmap xconf path
   liftIO $ maybe (return ()) (B.drawBitmap disp p gc fc bc (round h) (round v)) bm
+
+lookupXBitmap :: XConf -> String -> Maybe B.Bitmap
+lookupXBitmap xconf path = lookup path (iconCache xconf)
+
+readColourName :: String -> (SRGB.Colour Double, Double)
+readColourName str =
+  case CNames.readColourName str of
+    Just c -> (c, 1.0)
+    Nothing -> case SRGB.sRGB24reads str of
+                 [(c, "")] -> (c, 1.0)
+                 [(c,d)] -> (c, read ("0x" ++ d))
+                 _ ->  (CNames.white, 1.0)
+
+setSourceColor :: (SRGB.Colour Double, Double) -> C.Render ()
+setSourceColor (colour, alph) =
+  if alph < 1 then C.setSourceRGBA r g b alph else C.setSourceRGB r g b
+  where rgb = SRGB.toSRGB colour
+        r = SRGB.channelRed rgb
+        g = SRGB.channelGreen rgb
+        b = SRGB.channelBlue rgb
+
+renderRect :: String -> Double -> (Double, Double, Double, Double) -> C.Render ()
+renderRect color wd (x0, y0, w, h) = do
+  setSourceColor (readColourName color)
+  C.setLineWidth wd
+  C.rectangle x0 y0 w h
+  C.stroke
+
+renderLines :: String -> Double -> [(Double, Double, Double, Double)] -> C.Render ()
+renderLines color wd lns = do
+  setSourceColor (readColourName color)
+  C.setLineWidth wd
+  mapM_ (\(x0, y0, x1, y1) -> C.moveTo x0 y0 >> C.lineTo x1 y1 >> C.stroke) lns
 
 segmentMarkup :: Config -> Segment -> String
 segmentMarkup conf (Text txt, info, idx, _actions) =
@@ -134,14 +155,8 @@ withRenderinfo _ dctx seg@(Icon p, _, _, _) = do
       draw _ off mx = when (off + wd <= mx) $ dcBitmapDrawer dctx off vpos p
   return (seg, draw, wd)
 
-renderRects :: String -> Double -> [(Double, Double, Double, Double)] -> C.Render ()
-renderRects color wd rects = do
-  setSourceColor (readColourName color)
-  C.setLineWidth wd
-  mapM_ (\(x0, y0, w, h) -> C.rectangle x0 y0 w h >> C.stroke) rects
-
-boxRects :: Box -> Double -> Double -> Double -> [(Double, Double, Double, Double)]
-boxRects (Box bd offset lw _ margins) ht x0 x1 =
+boxLines :: Box -> Double -> Double -> Double -> [(Double, Double, Double, Double)]
+boxLines (Box bd offset lw _ margins) ht x0 x1 =
   case bd of
     BBTop  -> [rtop];   BBBottom -> [rbot];   BBVBoth -> [rtop, rbot]
     BBLeft -> [rleft];  BBRight  -> [rright]; BBHBoth -> [rleft, rright]
@@ -156,15 +171,15 @@ boxRects (Box bd offset lw _ margins) ht x0 x1 =
         xmax = x1 + mr + lc
         ymin = mt + lc
         ymax = ht - mb - lc
-        rtop = (xmin + p0, ymin, xmax + p1 - xmin - p0, 0)
-        rbot = (xmin + p0, ymax, xmax + p1 - xmin - p0, 0)
-        rleft = (xmin, ymin + p0, 0, ymax + p1 - ymin - p0)
-        rright = (xmax, ymin + p0, 0, ymax + p1 - ymin - p0)
+        rtop = (xmin + p0, ymin, xmax + p1, ymin)
+        rbot = (xmin + p0, ymax, xmax + p1, ymax)
+        rleft = (xmin, ymin + p0, xmin, ymax + p1)
+        rright = (xmax, ymin + p0, xmax, ymax + p1)
 
 drawBox :: DrawContext -> Surface -> Double -> Double -> Box -> IO ()
 drawBox dctx surf x0 x1 box@(Box _ _ w color _) =
   C.renderWith surf $
-    renderRects color (fromIntegral w) (boxRects box (dcHeight dctx) x0 x1)
+    renderLines color (fromIntegral w) (boxLines box (dcHeight dctx) x0 x1)
 
 drawSegmentBackground ::
   DrawContext -> Surface -> TextRenderInfo -> Double -> Double -> IO ()
@@ -193,14 +208,6 @@ drawSegment dctx surface maxoff (off, acts, boxs) (segment, render, lwidth) = do
   render surface off maxoff
   return (off + lwidth, acts', boxs')
 
-setSourceColor :: (SRGB.Colour Double, Double) -> C.Render ()
-setSourceColor (colour, alph) =
-  if alph < 1 then C.setSourceRGBA r g b alph else C.setSourceRGB r g b
-  where rgb = SRGB.toSRGB colour
-        r = SRGB.channelRed rgb
-        g = SRGB.channelGreen rgb
-        b = SRGB.channelBlue rgb
-
 renderOuterBorder :: Config -> Double -> Double -> C.Render ()
 renderOuterBorder conf w h =  do
   let r = case border conf of
@@ -211,7 +218,7 @@ renderOuterBorder conf w h =  do
             BottomBM m -> (0, h - fi m, w - 1, h - fi m)
             FullBM m -> (fi m, fi m, w - fi m - 1, h - fi m - 1)
             NoBorder -> (-1, -1, -1, -1)
-  renderRects (borderColor conf) (fi (borderWidth conf)) [r]
+  renderRect (borderColor conf) (fi (borderWidth conf)) r
   where fi = fromIntegral
 
 drawBorder :: Config -> Double -> Double -> Surface -> IO ()
@@ -228,10 +235,10 @@ drawBoxes' dctx surf (from, to, bs) = mapM_ (drawBox dctx surf from to) bs
 
 drawBoxes :: DrawContext -> Surface -> Boxes -> IO ()
 drawBoxes dctx surf ((from, to, b):(from', to', b'):bxs) =
-  if to < from'
+  if to < from' || b /= b'
   then do drawBoxes' dctx surf (from, to, b)
           drawBoxes dctx surf $ (from', to', b'):bxs
-  else drawBoxes dctx surf $ (from, to', nub (b ++ b')):bxs
+  else do drawBoxes dctx surf $ (from, to', b'):bxs
 
 drawBoxes dctx surf [bi] = drawBoxes' dctx surf bi
 
