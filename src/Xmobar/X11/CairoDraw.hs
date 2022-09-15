@@ -143,26 +143,23 @@ renderRects color wd rects = do
 boxRects :: Box -> Double -> Double -> Double -> [(Double, Double, Double, Double)]
 boxRects (Box bd offset lw _ margins) ht x0 x1 =
   case bd of
-    BBTop -> [rtop]
-    BBBottom -> [rbot]
-    BBVBoth -> [rtop, rbot]
-    BBLeft -> [rleft]
-    BBRight -> [rright]
-    BBHBoth -> [rleft, rright]
+    BBTop  -> [rtop];   BBBottom -> [rbot];   BBVBoth -> [rtop, rbot]
+    BBLeft -> [rleft];  BBRight  -> [rright]; BBHBoth -> [rleft, rright]
     BBFull -> [rtop, rbot, rleft, rright]
   where (BoxMargins top right bot left) = margins
         (BoxOffset align m) = offset
         ma = fromIntegral m
-        (p0, p1) = case align of
-                     L -> (0, -ma)
-                     C -> (ma, -ma)
-                     R -> (ma, 0)
-        lc = fromIntegral (lw `div` 2)
+        (p0, p1) = case align of L -> (0, -ma); C -> (ma, -ma); R -> (ma, 0)
+        lc = fromIntegral lw / 2
         [mt, mr, mb, ml] = map fromIntegral [top, right, bot, left]
-        rtop = (x0 + p0, mt + lc, x1 + p1 - x0 - p0, 0)
-        rbot = (x0 + p0, ht - mb - max lc 1, x1 + p1 - x0 - p0, 0)
-        rleft = (x0 - 1 + ml, p0, 0, ht + p1 - p0)
-        rright = (x1 + lc - 1 - mr, p0, 0, ht + p1 - p0)
+        xmin = x0 - ml - lc
+        xmax = x1 + mr + lc
+        ymin = mt + lc
+        ymax = ht - mb - lc
+        rtop = (xmin + p0, ymin, xmax + p1 - xmin - p0, 0)
+        rbot = (xmin + p0, ymax, xmax + p1 - xmin - p0, 0)
+        rleft = (xmin, ymin + p0, 0, ymax + p1 - ymin - p0)
+        rright = (xmax, ymin + p0, 0, ymax + p1 - ymin - p0)
 
 drawBox :: DrawContext -> Surface -> Double -> Double -> Box -> IO ()
 drawBox dctx surf x0 x1 box@(Box _ _ w color _) =
