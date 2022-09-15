@@ -238,7 +238,8 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
       (red). =<fc=#FF0000,#000000>string</fc>= will print =string= in red with a
       black background (=#000000=). Background absolute offsets can be specified
       for fonts. =<fc=#FF0000,#000000:0>string</fc>= will have a background
-      matching the bar's height.
+      matching the bar's height.  It is also possible to specify the colour's
+      opacity, with two additional hex digits (e.g. #FF00000aa).
 
     - =<fn=1>string</fn>= will print =string= with the first font from
       =additionalFonts=. The index =0= corresponds to the standard font.
@@ -289,9 +290,9 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
       foreground color. The =box= tag accepts several optional arguments to
       tailor its looks:
 
-      - =type=: =Top=, =Bottom=, =VBoth= (a single line above or below
-        string, or both), =Left=, =Right=, =HBoth= (single vertical lines),
-        =Full= (a rectangle, the default).
+      - =type=: =Top=, =Bottom=, =VBoth= (a single line above or below string, or
+        both), =Left=, =Right=, =HBoth= (single vertical lines), =Full= (a rectangle,
+        the default).
       - =color=: the color of the box lines.
       - =width=: the width of the box lines.
       - =offset=: an alignment char (L, C or R) followed by the amount of

@@ -49,16 +49,20 @@ data BoxBorder = BBTop
                | BBRight
                | BBHBoth
                | BBFull
-                 deriving ( Read, Eq, Show )
+                 deriving (Read, Eq, Show)
 
-data Box = Box BoxBorder BoxOffset CInt String BoxMargins deriving (Eq, Show)
+data Box = Box { bBorder :: BoxBorder
+               , bOffset :: BoxOffset
+               , bWidth :: CInt
+               , bColor :: String
+               , bMargins :: BoxMargins
+               } deriving (Eq, Show)
 
-data TextRenderInfo =
-    TextRenderInfo { tColorsString   :: String
-                   , tBgTopOffset    :: Int32
-                   , tBgBottomOffset :: Int32
-                   , tBoxes          :: [Box]
-                   } deriving Show
+data TextRenderInfo = TextRenderInfo { tColorsString   :: String
+                                     , tBgTopOffset    :: Int32
+                                     , tBgBottomOffset :: Int32
+                                     , tBoxes          :: [Box]
+                                     } deriving Show
 
 type FontIndex   = Int
 

@@ -17,20 +17,27 @@
 module Xmobar.X11.CairoDraw (drawInPixmap) where
 
 import Prelude hiding (lookup)
+
 import Data.Map (lookup)
+import Data.List (nub)
+import qualified Data.Colour.SRGB as SRGB
+import qualified Data.Colour.Names as CNames
 
 import Control.Monad.IO.Class
 import Control.Monad.Reader
 
-import Graphics.X11.Xlib hiding (Segment)
+import Graphics.X11.Xlib hiding (Segment, drawSegments)
 import Graphics.Rendering.Cairo.Types
 import qualified Graphics.Rendering.Cairo as C
 import qualified Graphics.Rendering.Pango as P
 
-import qualified Data.Colour.SRGB as SRGB
-import qualified Data.Colour.Names as CNames
-
-import Xmobar.Run.Parsers ( Segment, Widget(..), TextRenderInfo (..)
+import Xmobar.Run.Parsers (Segment
+                          , Widget(..)
+                          , Box (..)
+                          , BoxMargins (..)
+                          , BoxBorder (..)
+                          , BoxOffset (..)
+                          , TextRenderInfo (..)
                           , colorComponents)
 import Xmobar.Config.Types
 import Xmobar.Text.Pango (fixXft)
@@ -75,9 +82,9 @@ drawInPixmap gc p s = do
       (Rectangle _ _ w h) = rect xconf
       dw = fromIntegral w
       dh = fromIntegral h
-      conf = (config xconf)
+      conf = config xconf
       dc = DC (drawXBitmap xconf gc p) (lookupXBitmap xconf) conf dw dh s
-      render = renderSegments dc
+      render = drawSegments dc
   liftIO $ renderBackground disp p conf w h
   liftIO $ withXlibSurface disp p vis (fromIntegral w) (fromIntegral h) render
 
@@ -129,28 +136,67 @@ withRenderinfo _ dctx seg@(Icon p, _, _, _) = do
       draw _ off mx = when (off + wd <= mx) $ dcBitmapDrawer dctx off vpos p
   return (seg, draw, wd)
 
-renderSegmentBackground ::
+renderRects :: String -> Double -> [(Double, Double, Double, Double)] -> C.Render ()
+renderRects color wd rects = do
+  setSourceColor (readColourName color)
+  C.setLineWidth wd
+  mapM_ (\(x0, y0, w, h) -> C.rectangle x0 y0 w h >> C.stroke) rects
+
+boxRects :: Box -> Double -> Double -> Double -> [(Double, Double, Double, Double)]
+boxRects (Box bd offset lw _ margins) ht x0 x1 =
+  case bd of
+    BBTop -> [rtop]
+    BBBottom -> [rbot]
+    BBVBoth -> [rtop, rbot]
+    BBLeft -> [rleft]
+    BBRight -> [rright]
+    BBHBoth -> [rleft, rright]
+    BBFull -> [rtop, rbot, rleft, rright]
+  where (BoxMargins top right bot left) = margins
+        (BoxOffset align m) = offset
+        ma = fromIntegral m
+        (p0, p1) = case align of
+                     L -> (0, -ma)
+                     C -> (ma, -ma)
+                     R -> (ma, 0)
+        lc = fromIntegral (lw `div` 2)
+        [mt, mr, mb, ml] = map fromIntegral [top, right, bot, left]
+        rtop = (x0 + p0, mt + lc, x1 + p1 - x0 - p0, 0)
+        rbot = (x0 + p0, ht - mb - max lc 1, x1 + p1 - x0 - p0, 0)
+        rleft = (x0 - 1 + ml, p0, 0, ht + p1 - p0)
+        rright = (x1 + lc - 1 - mr, p0, 0, ht + p1 - p0)
+
+drawBox :: DrawContext -> Surface -> Double -> Double -> Box -> IO ()
+drawBox dctx surf x0 x1 box@(Box _ _ w color _) =
+  C.renderWith surf $
+    renderRects color (fromIntegral w) (boxRects box (dcHeight dctx) x0 x1)
+
+drawSegmentBackground ::
   DrawContext -> Surface -> TextRenderInfo -> Double -> Double -> IO ()
-renderSegmentBackground dctx surf info xbeg xend =
+drawSegmentBackground dctx surf info x0 x1 =
   when (bg /= bgColor conf && (top >= 0 || bot >= 0)) $
     C.renderWith surf $ do
       setSourceColor (readColourName bg)
-      C.rectangle xbeg top (xend - xbeg) (dcHeight dctx - bot - top)
+      C.rectangle x0 top (x1 - x0) (dcHeight dctx - bot - top)
       C.fillPreserve
   where conf = dcConfig dctx
         (_, bg) = colorComponents conf (tColorsString info)
         top = fromIntegral $ tBgTopOffset info
         bot = fromIntegral $ tBgBottomOffset info
 
-renderSegment :: DrawContext -> Surface -> Double
-              -> (Double, Actions) -> Renderinfo -> IO (Double, Actions)
-renderSegment dctx surface maxoff (off, acts) (segment, render, lwidth) = do
+type Boxes = [(Double, Double, [Box])]
+type SegAcc = (Double, Actions, Boxes)
+
+drawSegment :: DrawContext -> Surface -> Double -> SegAcc -> Renderinfo -> IO SegAcc
+drawSegment dctx surface maxoff (off, acts, boxs) (segment, render, lwidth) = do
   let end = min maxoff (off + lwidth)
       (_, info, _, a) = segment
       acts' = case a of Just as -> (as, round off, round end):acts; _ -> acts
-  renderSegmentBackground dctx surface info off end
+      bs = tBoxes info
+      boxs' = if null bs then boxs else (off, end, bs):boxs
+  drawSegmentBackground dctx surface info off end
   render surface off maxoff
-  return (off + lwidth, acts')
+  return (off + lwidth, acts', boxs')
 
 setSourceColor :: (SRGB.Colour Double, Double) -> C.Render ()
 setSourceColor (colour, alph) =
@@ -160,15 +206,8 @@ setSourceColor (colour, alph) =
         g = SRGB.channelGreen rgb
         b = SRGB.channelBlue rgb
 
-drawRect :: String -> Double -> (Double, Double, Double, Double) -> C.Render()
-drawRect name wd (x0, y0, x1, y1) = do
-  setSourceColor (readColourName name)
-  C.setLineWidth wd
-  C.rectangle x0 y0 x1 y1
-  C.strokePreserve
-
-outerBorder :: Config -> Double -> Double -> C.Render ()
-outerBorder conf w h =  do
+renderOuterBorder :: Config -> Double -> Double -> C.Render ()
+renderOuterBorder conf w h =  do
   let r = case border conf of
             TopB -> (0, 0, w - 1, 0)
             BottomB -> (0, h - 1, w - 1, h - 1)
@@ -177,20 +216,34 @@ outerBorder conf w h =  do
             BottomBM m -> (0, h - fi m, w - 1, h - fi m)
             FullBM m -> (fi m, fi m, w - fi m - 1, h - fi m - 1)
             NoBorder -> (-1, -1, -1, -1)
-  drawRect (borderColor conf) (fi (borderWidth conf)) r
+  renderRects (borderColor conf) (fi (borderWidth conf)) [r]
   where fi = fromIntegral
 
-renderBorder :: Config -> Double -> Double -> Surface -> IO ()
-renderBorder conf w h surf =
+drawBorder :: Config -> Double -> Double -> Surface -> IO ()
+drawBorder conf w h surf =
   case border conf of
     NoBorder -> return ()
-    _ -> C.renderWith surf (outerBorder conf w h)
+    _ -> C.renderWith surf (renderOuterBorder conf w h)
 
 layoutsWidth :: [Renderinfo] -> Double
 layoutsWidth = foldl (\a (_,_,w) -> a + w) 0
 
-renderSegments :: DrawContext -> Surface -> IO Actions
-renderSegments dctx surface = do
+drawBoxes' :: DrawContext -> Surface -> (Double, Double, [Box]) -> IO ()
+drawBoxes' dctx surf (from, to, bs) = mapM_ (drawBox dctx surf from to) bs
+
+drawBoxes :: DrawContext -> Surface -> Boxes -> IO ()
+drawBoxes dctx surf ((from, to, b):(from', to', b'):bxs) = do
+  if to < from'
+  then do drawBoxes' dctx surf (from, to, b)
+          drawBoxes dctx surf $ (from', to', b'):bxs
+  else drawBoxes dctx surf $ (from, to', nub (b ++ b')):bxs
+
+drawBoxes dctx surf [bi] = drawBoxes' dctx surf bi
+
+drawBoxes _ _ [] = return ()
+
+drawSegments :: DrawContext -> Surface -> IO Actions
+drawSegments dctx surf = do
   let [left, center, right] = take 3 $ dcSegments dctx
       dh = dcHeight dctx
       dw = dcWidth dctx
@@ -199,13 +252,15 @@ renderSegments dctx surface = do
   llyts <- mapM (withRenderinfo ctx dctx) left
   rlyts <- mapM (withRenderinfo ctx dctx) right
   clyts <- mapM (withRenderinfo ctx dctx) center
-  (lend, as) <- foldM (renderSegment dctx surface dw) (0, []) llyts
+  (lend, as, bx) <- foldM (drawSegment dctx surf dw) (0, [], []) llyts
   let rw = layoutsWidth rlyts
       rstart = max (lend + 1) (dw - rw - 1)
       cmax = rstart - 1
       cw = layoutsWidth clyts
       cstart = lend + 1 + max 0 (dw - rw - lend - cw) / 2.0
-  (_, as') <- foldM (renderSegment dctx surface cmax) (cstart, as) clyts
-  (_, as'') <- foldM (renderSegment dctx surface dw) (rstart, as') rlyts
-  when (borderWidth conf > 0) (renderBorder conf dw dh surface)
+  (_, as', bx') <- foldM (drawSegment dctx surf cmax) (cstart, as, bx) clyts
+  (_, as'', bx'') <- foldM (drawSegment dctx surf dw) (rstart, as', bx') rlyts
+  -- putStrLn $ show (reverse bx'')
+  drawBoxes dctx surf (reverse bx'')
+  when (borderWidth conf > 0) (drawBorder conf dw dh surf)
   return as''
