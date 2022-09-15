@@ -32,13 +32,8 @@ source-repository head
   location:  git://codeberg.org/xmobar/xmobar.git
   branch:    master
 
-flag with_xft
-  description: Use Xft to render text. Deprecated: use with_cairo instead.
-  default: False
-
 flag with_cairo
   description: Use Cairo and Pango to render anti-aliased text.
-  default: False
 
 flag with_inotify
   description: inotify support (modern Linux only). Required for the Mail and MBox plugins.
@@ -229,11 +224,11 @@ library
     if flag(with_rtsopts)
        cpp-options: -DRTSOPTS
 
-    if flag(with_cairo) || flag(all_extensions) || flag(with_xft)
-       build-depends: cairo >= 0.13 && < 0.14,
-                      pango >= 0.13 && < 0.14,
+    if flag(with_cairo)
+       build-depends: cairo >= 0.13,
+                      pango >= 0.13,
                       colour >= 2.3.6,
-                      X11-xft >= 0.2 && < 0.4
+                      X11-xft >= 0.2
        other-modules: Xmobar.X11.CairoSurface,
                       Xmobar.X11.CairoDraw,
                       Xmobar.X11.XRender

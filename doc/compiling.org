@@ -57,11 +57,8 @@ them to =stack= directly:
    - =with_threaded= Uses GHC's threaded runtime. Use this option if xmobar
      enters a high-CPU regime right after starting.
 
-   - =with_xft= Antialiased font support.  Deprecated: use =with_cairo= instead.
-
    - =with_cairo= Antialiased fonts via Cairo/Pango. Requires the [[http://hackage.haskell.org/package/X11-xft/][X11-xft]]
-     package. This option automatically enables UTF-8. To use XFT fonts you
-     can use their fontconfig name, e.g
+     package. To use XFT fonts you can use their fontconfig name, e.g
 
      #+begin_src haskell
        font = "Iosevka Medium 10"
