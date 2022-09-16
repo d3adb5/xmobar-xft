@@ -31,6 +31,7 @@ import Graphics.X11.Xlib hiding (textExtents, textWidth, Segment)
 import Graphics.X11.Xlib.Extras
 
 import Xmobar.Config.Types
+import Xmobar.Config.Parse (indexedOffset)
 import Xmobar.Run.Parsers hiding (parseString)
 import Xmobar.Run.Actions
 import qualified Xmobar.X11.Bitmap as B
