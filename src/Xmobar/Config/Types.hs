@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Xmobar.Config
+-- Module      :  Xmobar.Config.Types
 -- Copyright   :  (c) Andrea Rossato
 -- License     :  BSD-style (see LICENSE)
 --
@@ -13,12 +13,9 @@
 -----------------------------------------------------------------------------
 
 module Xmobar.Config.Types
-    ( -- * Configuration
-      -- $config
-      Config (..)
+    ( Config (..)
     , XPosition (..), Align (..), Border (..), TextOutputFormat (..)
-    , SignalChan (..)
-    , indexedFont, indexedOffset
+    , FontIndex, SignalChan (..)
     ) where
 
 import qualified Control.Concurrent.STM as STM
@@ -71,18 +68,8 @@ data Config =
                                     --   right text alignment
            , template :: String     -- ^ The output template
            , verbose :: Bool        -- ^ Emit additional debug messages
-           , signal :: SignalChan   -- ^ The signal channel used to send signals to xmobar
+           , signal :: SignalChan   -- ^ The signal channel to send signals to xmobar
            } deriving (Read, Show)
-
-indexedFont :: Config -> Int -> String
-indexedFont config idx =
-  if idx < 1 || idx > length (additionalFonts config)
-  then font config else additionalFonts config !! (idx - 1)
-
-indexedOffset :: Config -> Int -> Int
-indexedOffset config idx =
-  if idx < 1 || idx > length (textOffsets config)
-  then textOffset config else textOffsets config !! (idx - 1)
 
 data XPosition = Top
                | TopH Int
@@ -110,6 +97,8 @@ data Border = NoBorder
               deriving ( Read, Show, Eq )
 
 data TextOutputFormat = Plain | Ansi | Pango | Swaybar deriving (Read, Show, Eq)
+
+type FontIndex   = Int
 
 newtype SignalChan = SignalChan { unSignalChan :: Maybe (STM.TMVar SignalType) }
 

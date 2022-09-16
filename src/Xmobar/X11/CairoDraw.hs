@@ -35,12 +35,10 @@ import qualified Graphics.Rendering.Pango as P
 import Xmobar.Run.Parsers (Segment
                           , Widget(..)
                           , Box (..)
-                          , BoxMargins (..)
-                          , BoxBorder (..)
-                          , BoxOffset (..)
                           , TextRenderInfo (..)
                           , colorComponents)
 import Xmobar.Config.Types
+import Xmobar.Config.Parse (indexedFont, indexedOffset)
 import Xmobar.Text.Pango (fixXft)
 import Xmobar.X11.Types
 import Xmobar.X11.Boxes (boxLines, borderRect)

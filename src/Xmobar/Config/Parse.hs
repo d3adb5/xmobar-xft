@@ -16,7 +16,10 @@
 ------------------------------------------------------------------------------
 
 
-module Xmobar.Config.Parse(readConfig, parseConfig) where
+module Xmobar.Config.Parse(readConfig
+                          , parseConfig
+                          , indexedFont
+                          , indexedOffset) where
 
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Number (int)
@@ -174,3 +177,17 @@ commandsErr = "commands: this usually means that a command could not" ++
 readConfig :: Config -> FilePath -> IO (Either ParseError (Config,[String]))
 readConfig defaultConfig f =
   liftIO (S.readFile f) <&> parseConfig defaultConfig
+
+-- | Extracts from a configuration the additional font at the corresponding index.
+-- Returns the default font if not present.
+indexedFont :: Config -> FontIndex -> String
+indexedFont config idx =
+  if idx < 1 || idx > length (additionalFonts config)
+  then font config else additionalFonts config !! (idx - 1)
+
+-- | Extracts from a configuration the offset at the corresponding index.
+-- Returns the default offset if not present.
+indexedOffset :: Config -> FontIndex -> Int
+indexedOffset config idx =
+  if idx < 1 || idx > length (textOffsets config)
+  then textOffset config else textOffsets config !! (idx - 1)

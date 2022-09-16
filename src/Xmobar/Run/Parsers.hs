@@ -64,8 +64,6 @@ data TextRenderInfo = TextRenderInfo { tColorsString   :: String
                                      , tBoxes          :: [Box]
                                      } deriving Show
 
-type FontIndex   = Int
-
 type Segment = (Widget, TextRenderInfo, FontIndex, Maybe [Action])
 
 -- | Runs the string parser

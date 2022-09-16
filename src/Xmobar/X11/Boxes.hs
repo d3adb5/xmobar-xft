@@ -18,6 +18,10 @@ module Xmobar.X11.Boxes (boxLines, borderRect) where
 import Xmobar.Run.Parsers
 import Xmobar.Config.Types
 
+-- | Computes the coordinates of a list of lines representing a Box.
+-- The Box is to be positioned between x0 and x1, with height ht, and drawn
+-- with line width lw.  The returned lists are coordinates of the beginning
+-- and end of each line.
 boxLines :: Box -> Double -> Double -> Double -> [(Double, Double, Double, Double)]
 boxLines (Box bd offset lw _ margins) ht x0 x1 =
   case bd of
@@ -39,6 +43,7 @@ boxLines (Box bd offset lw _ margins) ht x0 x1 =
         rleft = (xmin, ymin + p0, xmin, ymax + p1)
         rright = (xmax, ymin + p0, xmax, ymax + p1)
 
+-- | Computes the rectangle (x, y, width, height) for the given Border.
 borderRect :: Border -> Double -> Double -> (Double, Double, Double, Double)
 borderRect bdr w h =
   case bdr of
