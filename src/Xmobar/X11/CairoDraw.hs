@@ -43,6 +43,7 @@ import Xmobar.Run.Parsers (Segment
 import Xmobar.Config.Types
 import Xmobar.Text.Pango (fixXft)
 import Xmobar.X11.Types
+import Xmobar.X11.Boxes (boxLines, borderRect)
 import qualified Xmobar.X11.Bitmap as B
 #ifdef XRENDER
 import Xmobar.X11.XRender (drawBackground)
@@ -106,13 +107,6 @@ setSourceColor (colour, alph) =
         g = SRGB.channelGreen rgb
         b = SRGB.channelBlue rgb
 
-renderRect :: String -> Double -> (Double, Double, Double, Double) -> C.Render ()
-renderRect color wd (x0, y0, w, h) = do
-  setSourceColor (readColourName color)
-  C.setLineWidth wd
-  C.rectangle x0 y0 w h
-  C.stroke
-
 renderLines :: String -> Double -> [(Double, Double, Double, Double)] -> C.Render ()
 renderLines color wd lns = do
   setSourceColor (readColourName color)
@@ -155,27 +149,6 @@ withRenderinfo _ dctx seg@(Icon p, _, _, _) = do
       draw _ off mx = when (off + wd <= mx) $ dcBitmapDrawer dctx off vpos p
   return (seg, draw, wd)
 
-boxLines :: Box -> Double -> Double -> Double -> [(Double, Double, Double, Double)]
-boxLines (Box bd offset lw _ margins) ht x0 x1 =
-  case bd of
-    BBTop  -> [rtop];   BBBottom -> [rbot];   BBVBoth -> [rtop, rbot]
-    BBLeft -> [rleft];  BBRight  -> [rright]; BBHBoth -> [rleft, rright]
-    BBFull -> [rtop, rbot, rleft, rright]
-  where (BoxMargins top right bot left) = margins
-        (BoxOffset align m) = offset
-        ma = fromIntegral m
-        (p0, p1) = case align of L -> (0, -ma); C -> (ma, -ma); R -> (ma, 0)
-        lc = fromIntegral lw / 2
-        [mt, mr, mb, ml] = map fromIntegral [top, right, bot, left]
-        xmin = x0 - ml - lc
-        xmax = x1 + mr + lc
-        ymin = mt + lc
-        ymax = ht - mb - lc
-        rtop = (xmin + p0, ymin, xmax + p1, ymin)
-        rbot = (xmin + p0, ymax, xmax + p1, ymax)
-        rleft = (xmin, ymin + p0, xmin, ymax + p1)
-        rright = (xmax, ymin + p0, xmax, ymax + p1)
-
 drawBox :: DrawContext -> Surface -> Double -> Double -> Box -> IO ()
 drawBox dctx surf x0 x1 box@(Box _ _ w color _) =
   C.renderWith surf $
@@ -194,8 +167,8 @@ drawSegmentBackground dctx surf info x0 x1 =
         top = fromIntegral $ tBgTopOffset info
         bot = fromIntegral $ tBgBottomOffset info
 
-type Boxes = [(Double, Double, [Box])]
-type SegAcc = (Double, Actions, Boxes)
+type BoundedBoxes = [(Double, Double, [Box])]
+type SegAcc = (Double, Actions, BoundedBoxes)
 
 drawSegment :: DrawContext -> Surface -> Double -> SegAcc -> Renderinfo -> IO SegAcc
 drawSegment dctx surface maxoff (off, acts, boxs) (segment, render, lwidth) = do
@@ -209,17 +182,12 @@ drawSegment dctx surface maxoff (off, acts, boxs) (segment, render, lwidth) = do
   return (off + lwidth, acts', boxs')
 
 renderOuterBorder :: Config -> Double -> Double -> C.Render ()
-renderOuterBorder conf w h =  do
-  let r = case border conf of
-            TopB -> (0, 0, w - 1, 0)
-            BottomB -> (0, h - 1, w - 1, h - 1)
-            FullB -> (0, 0, w - 1, h - 1)
-            TopBM m -> (0, fi m, w - 1, fi m)
-            BottomBM m -> (0, h - fi m, w - 1, h - fi m)
-            FullBM m -> (fi m, fi m, w - fi m - 1, h - fi m - 1)
-            NoBorder -> (-1, -1, -1, -1)
-  renderRect (borderColor conf) (fi (borderWidth conf)) r
-  where fi = fromIntegral
+renderOuterBorder conf mw mh = do
+  let (x0, y0, w, h) = borderRect (border conf) mw mh
+  setSourceColor (readColourName (borderColor conf))
+  C.setLineWidth (fromIntegral (borderWidth conf))
+  C.rectangle x0 y0 w h
+  C.stroke
 
 drawBorder :: Config -> Double -> Double -> Surface -> IO ()
 drawBorder conf w h surf =
@@ -227,13 +195,10 @@ drawBorder conf w h surf =
     NoBorder -> return ()
     _ -> C.renderWith surf (renderOuterBorder conf w h)
 
-layoutsWidth :: [Renderinfo] -> Double
-layoutsWidth = foldl (\a (_,_,w) -> a + w) 0
-
 drawBoxes' :: DrawContext -> Surface -> (Double, Double, [Box]) -> IO ()
 drawBoxes' dctx surf (from, to, bs) = mapM_ (drawBox dctx surf from to) bs
 
-drawBoxes :: DrawContext -> Surface -> Boxes -> IO ()
+drawBoxes :: DrawContext -> Surface -> BoundedBoxes -> IO ()
 drawBoxes dctx surf ((from, to, b):(from', to', b'):bxs) =
   if to < from' || b /= b'
   then do drawBoxes' dctx surf (from, to, b)
@@ -257,6 +222,7 @@ drawSegments dctx surf = do
       dh = dcHeight dctx
       dw = dcWidth dctx
       conf = dcConfig dctx
+      sWidth = foldl (\a (_,_,w) -> a + w) 0
   ctx <- P.cairoCreateContext Nothing
   llyts <- mapM (withRenderinfo ctx dctx) left
   rlyts <- mapM (withRenderinfo ctx dctx) right
@@ -265,10 +231,10 @@ drawSegments dctx surf = do
   drawCairoBackground dctx surf
 #endif
   (lend, as, bx) <- foldM (drawSegment dctx surf dw) (0, [], []) llyts
-  let rw = layoutsWidth rlyts
+  let rw = sWidth rlyts
       rstart = max (lend + 1) (dw - rw - 1)
       cmax = rstart - 1
-      cw = layoutsWidth clyts
+      cw = sWidth clyts
       cstart = lend + 1 + max 0 (dw - rw - lend - cw) / 2.0
   (_, as', bx') <- foldM (drawSegment dctx surf cmax) (cstart, as, bx) clyts
   (_, as'', bx'') <- foldM (drawSegment dctx surf dw) (rstart, as', bx') rlyts

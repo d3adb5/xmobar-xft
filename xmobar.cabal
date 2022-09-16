@@ -136,6 +136,7 @@ library
                    Xmobar.Text.SwaybarClicks,
                    Xmobar.Text.Output,
                    Xmobar.X11.Bitmap,
+                   Xmobar.X11.Boxes,
                    Xmobar.X11.ColorCache,
                    Xmobar.X11.Draw,
                    Xmobar.X11.Events,
