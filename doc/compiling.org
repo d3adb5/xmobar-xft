@@ -1,55 +1,82 @@
-#+title: Compiling xmobar from source
+#+title: Compiling xmobar
 
-If you don't have =cabal-install= installed, you can get xmobar's source
-code in a variety of ways:
+* Getting the source
 
-- From [[http://hackage.haskell.org/package/xmobar/][Hackage]]. Just download the latest release from xmobar's hackage
-  page.
+  If you don't have =cabal-install= installed, you can get xmobar's source
+  code in a variety of ways:
 
-- From [[http://codeberg.org/xmobar/xmobar/][Codeberg]]. There are also tarballs available for every tagged
-  release on [[https://codeberg.org/xmobar/xmobar/releases][Codeberg's releases page]]
+  - From [[http://hackage.haskell.org/package/xmobar/][Hackage]]. Just download the latest release from xmobar's hackage
+    page.
 
-- From the bleeding edge repo. If you prefer to live dangerously, just
-  get the latest and greatest (and buggiest, I guess) using git:
+  - From [[http://codeberg.org/xmobar/xmobar/][Codeberg]]. There are also tarballs available for every tagged
+    release on [[https://codeberg.org/xmobar/xmobar/releases][Codeberg's releases page]]
+
+  - From the bleeding edge repo. If you prefer to live dangerously, just
+    get the latest and greatest (and buggiest, I guess) using git:
+
+    #+begin_src shell
+      git clone git://codeberg.org/xmobar/xmobar
+    #+end_src
+
+* C library dependencies
+  :PROPERTIES:
+  :CUSTOM_ID: c-libraries
+  :END:
+
+  To build xmobar you will need the Xorg and Pango/Cairo C-libraries and
+  headers installed in your system.  In Debian and derivatives that's easily
+  accomplished via
 
   #+begin_src shell
-    git clone git://codeberg.org/xmobar/xmobar
+    apt-get install -y xorg-dev libxrandr-dev libpango1.0-dev
   #+end_src
 
-If you have cabal installed, you can now use it from within xmobar's
-source tree:
+  and, optionally, in order to be able to build all available extensions and
+  plugins:
 
-#+begin_src shell
-  cabal install --flags="all_extensions"
-#+end_src
+  #+begin_src shell
+    apt-get install -y libasound2-dev libxpm-dev libmpd-dev
+  #+end_src
 
-There is also a =stack.yaml= file that will allow you to install the
-xmobar executable with
+* Compilation using cabal
 
-#+begin_src shell
-  stack install
-#+end_src
+  If you have cabal installed, you can now use it from within xmobar's source
+  tree:
 
-See the =stack.yaml= file for the enabled extensions. You can also pass
-them to =stack= directly:
+  #+begin_src shell
+    cabal install --flags="all_extensions"
+  #+end_src
 
-#+begin_src shell
-  stack install --flag xmobar:all_extensions
-#+end_src
+* Compilation using stack
+
+  There is also a =stack.yaml= file that will allow you to install the
+  xmobar executable with
+
+  #+begin_src shell
+    stack install
+  #+end_src
+
+  See the =stack.yaml= file for the enabled extensions. You can also pass
+  them to =stack= directly:
+
+  #+begin_src shell
+    stack install --flag xmobar:all_extensions
+  #+end_src
+
+* Compilation flags
+  :PROPERTIES:
+  :CUSTOM_ID: optional-features
+  :END:
+
+   You can configure xmobar to include some optional plugins and features,
+   which are not compiled by default. To that end, you need to add one or more
+   flags to either the cabal install command or the configure setup step.
+
+   Extensions need additional Haskell packages (listed below) that will be
+   automatically downloaded and installed if you're using cabal install.
+   Otherwise, you'll need to install them yourself.
 
 ** Optional features
-   :PROPERTIES:
-   :CUSTOM_ID: optional-features
-   :END:
-
-   You can configure xmobar to include some optional plugins and
-   features, which are not compiled by default. To that end, you need
-   to add one or more flags to either the cabal install command or
-   the configure setup step, as shown in the examples above.
-
-   Extensions need additional libraries (listed below) that will be
-   automatically downloaded and installed if you're using cabal
-   install.  Otherwise, you'll need to install them yourself.
 
    - =with_dbus= Enables support for DBUS by making xmobar to publish a
      service on the session bus. Requires the [[http://hackage.haskell.org/package/dbus][dbus]] package.
@@ -57,48 +84,31 @@ them to =stack= directly:
    - =with_threaded= Uses GHC's threaded runtime. Use this option if xmobar
      enters a high-CPU regime right after starting.
 
-   - =with_cairo= Antialiased fonts via Cairo/Pango. For fonts, you can use
-     their fontconfig name, e.g
-
-     #+begin_src haskell
-       font = "Iosevka Medium 10"
-       font = "DejaVu Sans Mono italic 9"
-     #+end_src
-
-     Or to have fallback fonts, just separate them by commas:
-
-     #+begin_src haskell
-       font = "Open Sans,WenQuanYi Zen Hei 9"
-     #+end_src
-
-     For backwards compatibility, font names with `xft:` are also supported.
-
-     #+begin_src haskell
-       font = "xft:DejaVu Sans Mono-10"
-     #+end_src
-
    - =with_xrender= Enables the main bar background alpha parameter.  Requires
      the [[http://hackage.haskell.org/package/X11-xft/][X11-xft]] package.
+
+   - =with_xpm= Support for xpm image file format. This will allow loading
+     .xpm files in =<icon>=. Requires the [[http://cgit.freedesktop.org/xorg/lib/libXpm][libXpm]] C library.
+
+** Optional plugins
+
+   The following plugins and monitors are optional.  You can enable them all
+   at once using the flag ~all_extensions~, or one by one with the following
+   flags:
 
    - =with_mpd= Enables support for the [[http://mpd.wikia.com/][MPD]] daemon. Requires the [[http://hackage.haskell.org/package/libmpd/][libmpd]]
      package.
 
-   - =with_mpris= Enables support for MPRIS v1/v2 protocol. Requires the
-     [[http://hackage.haskell.org/package/dbus][dbus]] and [[http://hackage.haskell.org/package/text][text]] packages.
+   - =with_mpris= Enables support for MPRIS v1/v2 protocol used by the plugins
+     of the same name. Requires the [[http://hackage.haskell.org/package/dbus][dbus]] and [[http://hackage.haskell.org/package/text][text]] packages.
 
-   - =with_inotify= Support for inotify in modern Linux kernels. This
-     option is needed for the MBox and Mail plugins to work. Requires the
-     [[http://hackage.haskell.org/package/hinotify/][hinotify]] package.
+   - =with_inotify= Support for inotify in modern Linux kernels. This option is
+     needed for the ~MBox~ and ~Mail~ plugins to work. Requires the [[http://hackage.haskell.org/package/hinotify/][hinotify]]
+     package.
 
    - =with_nl80211= Support for wireless cards on Linux via nl80211 (all
-     upstream drivers). Enables the Wireless plugin. Requires [netlink] and
-     [cereal] packages.
-
-   - =with_iwlib= Support for wireless cards via Wext ioctls (deprecated).
-     Enables the Wireless plugin. No Haskell library is required, but you
-     will need the [[http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/Tools.html][iwlib]] C library and headers in your system (e.g.,
-     install =libiw-dev= in Debian-based systems or =wireless_tools= on
-     Arch Linux). Conflicts with =with_nl80211=.
+     upstream drivers). Enables the ~Wireless~ plugin. Requires [[http://hackage.haskell.org/package/netlink][netlink]] and
+     [[http://hackage.haskell.org/package/cereal/][cereal]] packages.
 
    - =with_alsa= Support for ALSA sound cards. Enables the Volume plugin.
      Requires the [[http://hackage.haskell.org/package/alsa-mixer][alsa-mixer]] package.  To install the latter, you'll need
@@ -108,13 +118,17 @@ them to =stack= directly:
    - =with_datezone= Support for other timezones. Enables the DateZone
      plugin. Requires [[http://hackage.haskell.org/package/timezone-olson][timezone-olson]] and [[http://hackage.haskell.org/package/timezone-series][timezone-series]] package.
 
-   - =with_xpm= Support for xpm image file format. This will allow loading
-     .xpm files in =<icon>=. Requires the [[http://cgit.freedesktop.org/xorg/lib/libXpm][libXpm]] C library.
-
-   - =with_uvmeter= Enables UVMeter plugin. The plugin shows UV data for
-     Australia.
-
    - =with_weather= Support to display weather information. Enables Weather
      plugin.
 
-   - =all_extensions= Enables all the extensions above.
+   Finally, the following flags enable plugins not included by ~all_extensions~:
+
+   - =with_uvmeter= Enables the ~UVMeter~ plugin. The plugin shows UV data for
+     Australia.
+
+   - =with_kraken= Enables the ~Kraken~ plugin.
+
+   - =with_iwlib= Support for wireless cards via Wext ioctls (deprecated).
+     Enables the ~Wireless~ plugin. You will need the [[http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/Tools.html][iwlib]] C library and
+     headers in your system (e.g., install =libiw-dev= in Debian-based systems
+     or =wireless_tools= on Arch Linux). Conflicts with =with_nl80211=.

@@ -64,29 +64,28 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
        emerge --ask xmobar
      #+end_src
 
-** Using cabal-install
+** Using cabal or stack
 
-   Xmobar is available from [[http://hackage.haskell.org/package/xmobar/][Hackage]], and you can install it using
-   =cabal-install=:
+   Xmobar is available from [[http://hackage.haskell.org/package/xmobar/][Hackage]], and you can compile and install it using
+   =cabal-install=, making sure the [[doc/compiling.org#c-libraries][required C libraries]] are in place. For a
+   full build with all available extensions:
 
    #+begin_src shell
-     cabal install xmobar
+     # required C librarises
+     apt-get install xorg-dev libxrandr-dev libpango1.0-dev
+     # optional C libraries for additional plugins
+     apt-get install libasound2-dev libxpm-dev libmpd-dev
+
+     cabal install xmobar -fall_extensions
    #+end_src
 
-   Starting with version 0.35.1, xmobar now requires at least GHC version
+   Starting with version 0.35.1, xmobar requires at least GHC version
    8.4.x. to build. See [[https://codeberg.org/xmobar/xmobar/issues/461][this issue]] for more information.
 
    See [[file:doc/compiling.org#optional-features][here]] for a list of optional compilation flags that will enable some
-   optional plugins. For instance, to install xmobar with all the bells and
-   whistles (this is probably what you want), use:
+   optional plugins.
 
-   #+begin_src shell
-     cabal install xmobar --flags="all_extensions"
-   #+end_src
-
-** From source
-
-   See [[file:doc/compiling.org][compiling]].
+   See [[file:doc/compiling.org][compiling]] for full compilation instructions starting from source.
 
 * Running xmobar
 ** Running xmobar with a configuration file
