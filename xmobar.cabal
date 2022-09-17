@@ -34,9 +34,11 @@ source-repository head
 
 flag with_cairo
   description: Use Cairo and Pango to render anti-aliased text.
+  default: True
 
 flag with_xrender
   description: Use XRender for alpha background pseudo-transparency.
+  default: True
 
 flag with_inotify
   description: inotify support (modern Linux only). Required for the Mail and MBox plugins.
