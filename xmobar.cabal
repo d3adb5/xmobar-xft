@@ -88,13 +88,13 @@ flag with_rtsopts
   description: Use -with-rtsopts=-V0 to reduce wakeups.
   default: True
 
-flag with_uvmeter
-  description: UVMeter only useful to australians.
-  default: False
-
 flag with_weather
   description: Enable weather plugin.
   default: True
+
+flag with_uvmeter
+  description: UVMeter only useful to australians.
+  default: False
 
 flag with_kraken
   description: Enable Kraken plugin.

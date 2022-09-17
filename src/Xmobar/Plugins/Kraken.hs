@@ -28,7 +28,7 @@ data Kraken = Kraken [String] String
 instance Exec Kraken where
   alias (Kraken _ a) = a
   start (Kraken ps _) cb = do
-    mvar <- newEmptyMVar 
+    mvar <- newEmptyMVar
     bracket (async $ reconnectOnConnectionClose $ wsClientApp ps mvar) cancel $ \_ -> do
       let loop mv p = do
            v <- takeMVar mv
@@ -39,7 +39,7 @@ instance Exec Kraken where
       loop mvar (Map.fromList $ zip ps (repeat 0.0))
 
     where
-      display :: Map.Map String Double -> String 
+      display :: Map.Map String Double -> String
       display m = unwords $ sort $ map (\x -> fst x ++ ": " ++ show (snd x)) $ Map.toList m
 
       reconnectOnConnectionClose :: ClientApp () -> IO ()
@@ -71,7 +71,7 @@ parseDoubleString v = do
     Just num -> return num
     Nothing -> typeMismatch "Double inside a String" v
 
-instance FromJSON Ask where 
+instance FromJSON Ask where
   parseJSON (Array v)
     | V.length v == 3 = do
       p <- parseDoubleString $ v V.! 0
@@ -87,7 +87,7 @@ data Bid = Bid {
   , bidLotVolume :: Double
   } deriving Show
 
-instance FromJSON Bid where 
+instance FromJSON Bid where
   parseJSON (Array v)
     | V.length v == 3 = do
       p <- parseDoubleString $ v V.! 0
@@ -102,7 +102,7 @@ data Close = Close {
   , closeLotVolume :: Double
   } deriving Show
 
-instance FromJSON Close where 
+instance FromJSON Close where
   parseJSON (Array v)
     | V.length v == 2 = do
       p <- parseDoubleString $ v V.! 0
@@ -117,12 +117,12 @@ data TickerInformation = TickerInformation {
   , close :: Close
   } deriving Show
 
-instance FromJSON TickerInformation where 
+instance FromJSON TickerInformation where
   parseJSON = withObject "P" $ \v -> TickerInformation
     <$> v .: "a"
     <*> v .: "b"
     <*> v .: "c"
-  
+
 data Message =
     Heartbeat
   | TickerMessage { channelId :: Int, tickerInformation :: TickerInformation, channelName :: Text, tickerPair :: Text }
