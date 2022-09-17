@@ -17,76 +17,77 @@
 
 module Xmobar.X11.CairoDraw (drawInPixmap) where
 
-import Prelude hiding (lookup)
-
-import Data.Map (lookup)
+import qualified Data.Map as M
 
 import qualified Data.Colour.SRGB as SRGB
 import qualified Data.Colour.Names as CNames
 
-import Control.Monad.IO.Class
-import Control.Monad.Reader
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad (foldM, when)
+import Control.Monad.Reader (ask)
 
-import Graphics.X11.Xlib hiding (Segment, drawSegments)
-import Graphics.Rendering.Cairo.Types
-import qualified Graphics.Rendering.Cairo as C
-import qualified Graphics.Rendering.Pango as P
+import qualified Graphics.X11.Xlib as X11
+import qualified Graphics.Rendering.Cairo as Cairo
+import qualified Graphics.Rendering.Pango as Pango
 
-import Xmobar.Run.Parsers (Segment
-                          , Widget(..)
-                          , Box (..)
-                          , TextRenderInfo (..)
-                          , colorComponents)
-import Xmobar.Config.Types
-import Xmobar.Config.Parse (indexedFont, indexedOffset)
-import Xmobar.Text.Pango (fixXft)
-import Xmobar.X11.Types
-import Xmobar.X11.Boxes (boxLines, borderRect)
+import Graphics.Rendering.Cairo.Types(Surface)
+
+import qualified Xmobar.Config.Types as C
+import qualified Xmobar.Config.Parse as ConfigParse
+import qualified Xmobar.Run.Parsers as P
+import qualified Xmobar.Text.Pango as TextPango
+
+import qualified Xmobar.X11.Boxes as Boxes
 import qualified Xmobar.X11.Bitmap as B
-#ifdef XRENDER
-import Xmobar.X11.XRender (drawBackground)
-#endif
-import Xmobar.X11.CairoSurface
+import qualified Xmobar.X11.Types as X
+import Xmobar.X11.CairoSurface (withXlibSurface)
 
-type Renderinfo = (Segment, Surface -> Double -> Double -> IO (), Double)
+#ifdef XRENDER
+import qualified Xmobar.X11.XRender as XRender
+#endif
+
+type Renderinfo = (P.Segment, Surface -> Double -> Double -> IO (), Double)
 type BitmapDrawer = Double -> Double -> String -> IO ()
-type Actions = [ActionPos]
+type Actions = [X.ActionPos]
 
 data DrawContext = DC { dcBitmapDrawer :: BitmapDrawer
                       , dcBitmapLookup :: String -> Maybe B.Bitmap
-                      , dcConfig :: Config
+                      , dcConfig :: C.Config
                       , dcWidth :: Double
                       , dcHeight :: Double
-                      , dcSegments :: [[Segment]]
+                      , dcSegments :: [[P.Segment]]
                       }
 
-drawInPixmap :: GC -> Pixmap -> [[Segment]] -> X Actions
+drawInPixmap :: X11.GC -> X11.Pixmap -> [[P.Segment]] -> X.X Actions
 drawInPixmap gc p s = do
   xconf <- ask
-  let disp = display xconf
-      vis = defaultVisualOfScreen (defaultScreenOfDisplay disp)
-      (Rectangle _ _ w h) = rect xconf
+  let disp = X.display xconf
+      vis = X11.defaultVisualOfScreen (X11.defaultScreenOfDisplay disp)
+      (X11.Rectangle _ _ w h) = X.rect xconf
       dw = fromIntegral w
       dh = fromIntegral h
-      conf = config xconf
+      conf = X.config xconf
       dc = DC (drawXBitmap xconf gc p) (lookupXBitmap xconf) conf dw dh s
       render = drawSegments dc
 #ifdef XRENDER
-  liftIO $ drawBackground disp p (bgColor conf) (alpha conf) (Rectangle 0 0 w h)
+      color = C.bgColor conf
+      alph = C.alpha conf
+  liftIO $ XRender.drawBackground disp p color alph (X11.Rectangle 0 0 w h)
 #endif
   liftIO $ withXlibSurface disp p vis (fromIntegral w) (fromIntegral h) render
 
-drawXBitmap :: XConf -> GC -> Pixmap -> BitmapDrawer
+drawXBitmap :: X.XConf -> X11.GC -> X11.Pixmap -> BitmapDrawer
 drawXBitmap xconf gc p h v path = do
-  let disp = display xconf
-      conf = config xconf
-      fc = fgColor conf
-      bc = bgColor conf
-      bm = lookupXBitmap xconf path
-  liftIO $ maybe (return ()) (B.drawBitmap disp p gc fc bc (round h) (round v)) bm
+  let disp = X.display xconf
+      conf = X.config xconf
+      fc = C.fgColor conf
+      bc = C.bgColor conf
+  case lookupXBitmap xconf path of
+    Just bm -> liftIO $ B.drawBitmap disp p gc fc bc (round h) (round v) bm
+    Nothing -> return ()
 
-lookupXBitmap :: XConf -> String -> Maybe B.Bitmap
-lookupXBitmap xconf path = lookup path (iconCache xconf)
+lookupXBitmap :: X.XConf -> String -> Maybe B.Bitmap
+lookupXBitmap xconf path = M.lookup path (X.iconCache xconf)
 
 readColourName :: String -> (SRGB.Colour Double, Double)
 readColourName str =
@@ -97,113 +98,116 @@ readColourName str =
                  [(c,d)] -> (c, read ("0x" ++ d))
                  _ ->  (CNames.white, 1.0)
 
-setSourceColor :: (SRGB.Colour Double, Double) -> C.Render ()
+setSourceColor :: (SRGB.Colour Double, Double) -> Cairo.Render ()
 setSourceColor (colour, alph) =
-  if alph < 1 then C.setSourceRGBA r g b alph else C.setSourceRGB r g b
+  if alph < 1 then Cairo.setSourceRGBA r g b alph else Cairo.setSourceRGB r g b
   where rgb = SRGB.toSRGB colour
         r = SRGB.channelRed rgb
         g = SRGB.channelGreen rgb
         b = SRGB.channelBlue rgb
 
-renderLines :: String -> Double -> [(Double, Double, Double, Double)] -> C.Render ()
+renderLines :: String -> Double -> [Boxes.Line] -> Cairo.Render ()
 renderLines color wd lns = do
   setSourceColor (readColourName color)
-  C.setLineWidth wd
-  mapM_ (\(x0, y0, x1, y1) -> C.moveTo x0 y0 >> C.lineTo x1 y1 >> C.stroke) lns
+  Cairo.setLineWidth wd
+  mapM_ (\(x0, y0, x1, y1) ->
+           Cairo.moveTo x0 y0 >> Cairo.lineTo x1 y1 >> Cairo.stroke) lns
 
-segmentMarkup :: Config -> Segment -> String
-segmentMarkup conf (Text txt, info, idx, _actions) =
-  let fnt = fixXft $ indexedFont conf idx
-      (fg, bg) = colorComponents conf (tColorsString info)
-      attrs = [P.FontDescr fnt, P.FontForeground fg]
-      attrs' = if bg == bgColor conf then attrs else P.FontBackground bg:attrs
-  in P.markSpan attrs' $ P.escapeMarkup txt
+segmentMarkup :: C.Config -> P.Segment -> String
+segmentMarkup conf (P.Text txt, info, idx, _actions) =
+  let fnt = TextPango.fixXft $ ConfigParse.indexedFont conf idx
+      (fg, bg) = P.colorComponents conf (P.tColorsString info)
+      attrs = [Pango.FontDescr fnt, Pango.FontForeground fg]
+      attrs' = if bg == C.bgColor conf
+               then attrs
+               else Pango.FontBackground bg:attrs
+  in Pango.markSpan attrs' $ Pango.escapeMarkup txt
 segmentMarkup _ _ = ""
 
-withRenderinfo :: P.PangoContext -> DrawContext -> Segment -> IO Renderinfo
-withRenderinfo ctx dctx seg@(Text _, inf, idx, a) = do
+withRenderinfo :: Pango.PangoContext -> DrawContext -> P.Segment -> IO Renderinfo
+withRenderinfo ctx dctx seg@(P.Text _, inf, idx, a) = do
   let conf = dcConfig dctx
-  lyt <- P.layoutEmpty ctx
-  mk <- P.layoutSetMarkup lyt (segmentMarkup conf seg) :: IO String
-  (_, P.PangoRectangle o u w h) <- P.layoutGetExtents lyt
-  let voff' = fromIntegral $ indexedOffset conf idx
+  lyt <- Pango.layoutEmpty ctx
+  mk <- Pango.layoutSetMarkup lyt (segmentMarkup conf seg) :: IO String
+  (_, Pango.PangoRectangle o u w h) <- Pango.layoutGetExtents lyt
+  let voff' = fromIntegral $ ConfigParse.indexedOffset conf idx
       voff = voff' + (dcHeight dctx - h + u) / 2.0
       wd = w - o
       slyt s off mx = do
         when (off + w > mx) $ do
-          P.layoutSetEllipsize lyt P.EllipsizeEnd
-          P.layoutSetWidth lyt (Just $ mx - off)
-        C.renderWith s $ C.moveTo off voff >> P.showLayout lyt
-  return ((Text mk, inf, idx, a), slyt, wd)
+          Pango.layoutSetEllipsize lyt Pango.EllipsizeEnd
+          Pango.layoutSetWidth lyt (Just $ mx - off)
+        Cairo.renderWith s $ Cairo.moveTo off voff >> Pango.showLayout lyt
+  return ((P.Text mk, inf, idx, a), slyt, wd)
 
-withRenderinfo _ _ seg@(Hspace w, _, _, _) =
+withRenderinfo _ _ seg@(P.Hspace w, _, _, _) =
   return (seg, \_ _ _ -> return (), fromIntegral w)
 
-withRenderinfo _ dctx seg@(Icon p, _, _, _) = do
+withRenderinfo _ dctx seg@(P.Icon p, _, _, _) = do
   let bm = dcBitmapLookup dctx p
       wd = maybe 0 (fromIntegral . B.width) bm
-      ioff = iconOffset (dcConfig dctx)
+      ioff = C.iconOffset (dcConfig dctx)
       vpos = dcHeight dctx / 2  + fromIntegral ioff
       draw _ off mx = when (off + wd <= mx) $ dcBitmapDrawer dctx off vpos p
   return (seg, draw, wd)
 
-drawBox :: DrawContext -> Surface -> Double -> Double -> Box -> IO ()
-drawBox dctx surf x0 x1 box@(Box _ _ w color _) =
-  C.renderWith surf $
-    renderLines color (fromIntegral w) (boxLines box (dcHeight dctx) x0 x1)
+drawBox :: DrawContext -> Surface -> Double -> Double -> P.Box -> IO ()
+drawBox dctx surf x0 x1 box@(P.Box _ _ w color _) =
+  Cairo.renderWith surf $
+    renderLines color (fromIntegral w) (Boxes.boxLines box (dcHeight dctx) x0 x1)
 
 drawSegmentBackground ::
-  DrawContext -> Surface -> TextRenderInfo -> Double -> Double -> IO ()
+  DrawContext -> Surface -> P.TextRenderInfo -> Double -> Double -> IO ()
 drawSegmentBackground dctx surf info x0 x1 =
-  when (bg /= bgColor conf && (top >= 0 || bot >= 0)) $
-    C.renderWith surf $ do
+  when (bg /= C.bgColor conf && (top >= 0 || bot >= 0)) $
+    Cairo.renderWith surf $ do
       setSourceColor (readColourName bg)
-      C.rectangle x0 top (x1 - x0) (dcHeight dctx - bot - top)
-      C.fillPreserve
+      Cairo.rectangle x0 top (x1 - x0) (dcHeight dctx - bot - top)
+      Cairo.fillPreserve
   where conf = dcConfig dctx
-        (_, bg) = colorComponents conf (tColorsString info)
-        top = fromIntegral $ tBgTopOffset info
-        bot = fromIntegral $ tBgBottomOffset info
+        (_, bg) = P.colorComponents conf (P.tColorsString info)
+        top = fromIntegral $ P.tBgTopOffset info
+        bot = fromIntegral $ P.tBgBottomOffset info
 
-type BoundedBoxes = [(Double, Double, [Box])]
-type SegAcc = (Double, Actions, BoundedBoxes)
+type BoundedBox = (Double, Double, [P.Box])
+type Acc = (Double, Actions, [BoundedBox])
 
-drawSegment :: DrawContext -> Surface -> Double -> SegAcc -> Renderinfo -> IO SegAcc
+drawSegment :: DrawContext -> Surface -> Double -> Acc -> Renderinfo -> IO Acc
 drawSegment dctx surface maxoff (off, acts, boxs) (segment, render, lwidth) = do
   let end = min maxoff (off + lwidth)
       (_, info, _, a) = segment
       acts' = case a of Just as -> (as, round off, round end):acts; _ -> acts
-      bs = tBoxes info
+      bs = P.tBoxes info
       boxs' = if null bs then boxs else (off, end, bs):boxs
   drawSegmentBackground dctx surface info off end
   render surface off maxoff
   return (off + lwidth, acts', boxs')
 
-renderOuterBorder :: Config -> Double -> Double -> C.Render ()
+renderOuterBorder :: C.Config -> Double -> Double -> Cairo.Render ()
 renderOuterBorder conf mw mh = do
-  let (x0, y0, w, h) = borderRect (border conf) mw mh
-  setSourceColor (readColourName (borderColor conf))
-  C.setLineWidth (fromIntegral (borderWidth conf))
-  C.rectangle x0 y0 w h
-  C.stroke
+  let (x0, y0, w, h) = Boxes.borderRect (C.border conf) mw mh
+  setSourceColor (readColourName (C.borderColor conf))
+  Cairo.setLineWidth (fromIntegral (C.borderWidth conf))
+  Cairo.rectangle x0 y0 w h
+  Cairo.stroke
 
-drawBorder :: Config -> Double -> Double -> Surface -> IO ()
+drawBorder :: C.Config -> Double -> Double -> Surface -> IO ()
 drawBorder conf w h surf =
-  case border conf of
-    NoBorder -> return ()
-    _ -> C.renderWith surf (renderOuterBorder conf w h)
+  case C.border conf of
+    C.NoBorder -> return ()
+    _ -> Cairo.renderWith surf (renderOuterBorder conf w h)
 
-drawBoxes' :: DrawContext -> Surface -> (Double, Double, [Box]) -> IO ()
-drawBoxes' dctx surf (from, to, bs) = mapM_ (drawBox dctx surf from to) bs
+drawBBox :: DrawContext -> Surface -> BoundedBox -> IO ()
+drawBBox dctx surf (from, to, bs) = mapM_ (drawBox dctx surf from to) bs
 
-drawBoxes :: DrawContext -> Surface -> BoundedBoxes -> IO ()
+drawBoxes :: DrawContext -> Surface -> [BoundedBox] -> IO ()
 drawBoxes dctx surf ((from, to, b):(from', to', b'):bxs) =
   if to < from' || b /= b'
-  then do drawBoxes' dctx surf (from, to, b)
+  then do drawBBox dctx surf (from, to, b)
           drawBoxes dctx surf $ (from', to', b'):bxs
   else drawBoxes dctx surf $ (from, to', b'):bxs
 
-drawBoxes dctx surf [bi] = drawBoxes' dctx surf bi
+drawBoxes dctx surf [bi] = drawBBox dctx surf bi
 
 drawBoxes _ _ [] = return ()
 
@@ -211,7 +215,7 @@ drawBoxes _ _ [] = return ()
 drawCairoBackground :: DrawContext -> Surface -> IO ()
 drawCairoBackground dctx surf = do
   let (c, _) = readColourName (bgColor (dcConfig dctx))
-  C.renderWith surf $ setSourceColor (c, 1.0) >> C.paint
+  Cairo.renderWith surf $ setSourceColor (c, 1.0) >> Cairo.paint
 #endif
 
 drawSegments :: DrawContext -> Surface -> IO Actions
@@ -221,7 +225,7 @@ drawSegments dctx surf = do
       dw = dcWidth dctx
       conf = dcConfig dctx
       sWidth = foldl (\a (_,_,w) -> a + w) 0
-  ctx <- P.cairoCreateContext Nothing
+  ctx <- Pango.cairoCreateContext Nothing
   llyts <- mapM (withRenderinfo ctx dctx) left
   rlyts <- mapM (withRenderinfo ctx dctx) right
   clyts <- mapM (withRenderinfo ctx dctx) center
@@ -237,5 +241,5 @@ drawSegments dctx surf = do
   (_, as', bx') <- foldM (drawSegment dctx surf cmax) (cstart, as, bx) clyts
   (_, as'', bx'') <- foldM (drawSegment dctx surf dw) (rstart, as', bx') rlyts
   drawBoxes dctx surf (reverse bx'')
-  when (borderWidth conf > 0) (drawBorder conf dw dh surf)
+  when (C.borderWidth conf > 0) (drawBorder conf dw dh surf)
   return as''

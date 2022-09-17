@@ -15,12 +15,13 @@
 module Xmobar.Config.Types
     ( Config (..)
     , XPosition (..), Align (..), Border (..), TextOutputFormat (..)
-    , FontIndex, SignalChan (..)
+    , FontIndex
+    , SignalChan (..)
     ) where
 
 import qualified Control.Concurrent.STM as STM
-import Xmobar.Run.Runnable (Runnable(..))
-import Xmobar.System.Signal (SignalType)
+import qualified Xmobar.Run.Runnable as R
+import qualified Xmobar.System.Signal as S
 
 -- $config
 -- Configuration data type
@@ -35,7 +36,8 @@ data Config =
            , fgColor :: String      -- ^ Default font color
            , position :: XPosition  -- ^ Top Bottom or Static
            , textOutput :: Bool     -- ^ Write data to stdout instead of X
-           , textOutputFormat :: TextOutputFormat -- ^ Which color format to use for stdout: Ansi or Pango
+           , textOutputFormat :: TextOutputFormat
+                -- ^ Which color format to use for stdout: Ansi or Pango
            , textOffset :: Int      -- ^ Offset from top of window for text
            , textOffsets :: [Int]   -- ^ List of offsets for additionalFonts
            , iconOffset :: Int      -- ^ Offset from top of window for icons
@@ -57,8 +59,8 @@ data Config =
            , persistent :: Bool     -- ^ Whether automatic hiding should
                                     --   be enabled or disabled
            , iconRoot :: FilePath   -- ^ Root folder for icons
-           , commands :: [Runnable] -- ^ For setting the command,
-                                    --   the command arguments
+           , commands :: [R.Runnable] -- ^ For setting the command,
+                                      --   the command arguments
                                     --   and refresh rate for the programs
                                     --   to run (optional)
            , sepChar :: String      -- ^ The character to be used for indicating
@@ -68,7 +70,7 @@ data Config =
                                     --   right text alignment
            , template :: String     -- ^ The output template
            , verbose :: Bool        -- ^ Emit additional debug messages
-           , signal :: SignalChan   -- ^ The signal channel to send signals to xmobar
+           , signal :: SignalChan   -- ^ Channel to send signals to xmobar
            } deriving (Read, Show)
 
 data XPosition = Top
@@ -98,9 +100,9 @@ data Border = NoBorder
 
 data TextOutputFormat = Plain | Ansi | Pango | Swaybar deriving (Read, Show, Eq)
 
-type FontIndex   = Int
+type FontIndex = Int
 
-newtype SignalChan = SignalChan { unSignalChan :: Maybe (STM.TMVar SignalType) }
+newtype SignalChan = SignalChan {unSignalChan :: Maybe (STM.TMVar S.SignalType)}
 
 instance Read SignalChan where
   readsPrec _ _ = fail "SignalChan is not readable from a String"
