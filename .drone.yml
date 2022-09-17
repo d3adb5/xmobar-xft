@@ -8,8 +8,8 @@ pipeline:
     image: haskell:${GHC_VERSION}
     commands:
       - apt-get update
-      - apt-get install -y xorg-dev
-      - apt-get install -y libasound2-dev libxpm-dev libmpd-dev libxrandr-dev
+      - apt-get install -y xorg-dev libxrandr-dev libpango1.0-dev
+      - apt-get install -y libasound2-dev libxpm-dev libmpd-dev
       - apt-get install -y hspec-discover hlint
 
       - hlint src
@@ -17,3 +17,6 @@ pipeline:
       - cabal update
       - cabal build --enable-tests -fall_extensions
       - cabal test --enable-tests -fall_extensions
+
+      - cabal test --enable-tests -fall_extensions -f-with_cairo
+      - cabal test --enable-tests -fall_extensions -f-with_xrender
