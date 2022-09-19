@@ -15,18 +15,13 @@
 --
 ------------------------------------------------------------------------------
 
-module Xmobar.X11.CairoDraw (drawInPixmap) where
-
-import qualified Data.Map as M
+module Xmobar.X11.CairoDraw (drawSegments, DrawContext (..), BitmapDrawer) where
 
 import qualified Data.Colour.SRGB as SRGB
 import qualified Data.Colour.Names as CNames
 
-import Control.Monad.IO.Class (liftIO)
 import Control.Monad (foldM, when)
-import Control.Monad.Reader (ask)
 
-import qualified Graphics.X11.Xlib as X11
 import qualified Graphics.Rendering.Cairo as Cairo
 import qualified Graphics.Rendering.Pango as Pango
 
@@ -40,11 +35,6 @@ import qualified Xmobar.Text.Pango as TextPango
 import qualified Xmobar.X11.Boxes as Boxes
 import qualified Xmobar.X11.Bitmap as B
 import qualified Xmobar.X11.Types as X
-import Xmobar.X11.CairoSurface (withXlibSurface)
-
-#ifdef XRENDER
-import qualified Xmobar.X11.XRender as XRender
-#endif
 
 type Renderinfo = (P.Segment, Surface -> Double -> Double -> IO (), Double)
 type BitmapDrawer = Double -> Double -> String -> IO ()
@@ -57,37 +47,6 @@ data DrawContext = DC { dcBitmapDrawer :: BitmapDrawer
                       , dcHeight :: Double
                       , dcSegments :: [[P.Segment]]
                       }
-
-drawInPixmap :: X11.GC -> X11.Pixmap -> [[P.Segment]] -> X.X Actions
-drawInPixmap gc p s = do
-  xconf <- ask
-  let disp = X.display xconf
-      vis = X11.defaultVisualOfScreen (X11.defaultScreenOfDisplay disp)
-      (X11.Rectangle _ _ w h) = X.rect xconf
-      dw = fromIntegral w
-      dh = fromIntegral h
-      conf = X.config xconf
-      dc = DC (drawXBitmap xconf gc p) (lookupXBitmap xconf) conf dw dh s
-      render = drawSegments dc
-#ifdef XRENDER
-      color = C.bgColor conf
-      alph = C.alpha conf
-  liftIO $ XRender.drawBackground disp p color alph (X11.Rectangle 0 0 w h)
-#endif
-  liftIO $ withXlibSurface disp p vis (fromIntegral w) (fromIntegral h) render
-
-drawXBitmap :: X.XConf -> X11.GC -> X11.Pixmap -> BitmapDrawer
-drawXBitmap xconf gc p h v path = do
-  let disp = X.display xconf
-      conf = X.config xconf
-      fc = C.fgColor conf
-      bc = C.bgColor conf
-  case lookupXBitmap xconf path of
-    Just bm -> liftIO $ B.drawBitmap disp p gc fc bc (round h) (round v) bm
-    Nothing -> return ()
-
-lookupXBitmap :: X.XConf -> String -> Maybe B.Bitmap
-lookupXBitmap xconf path = M.lookup path (X.iconCache xconf)
 
 readColourName :: String -> (SRGB.Colour Double, Double)
 readColourName str =
@@ -148,8 +107,8 @@ withRenderinfo _ dctx seg@(P.Icon p, _, _, _) = do
       wd = maybe 0 (fromIntegral . B.width) bm
       ioff = C.iconOffset (dcConfig dctx)
       vpos = dcHeight dctx / 2  + fromIntegral ioff
-      draw _ off mx = when (off + wd <= mx) $ dcBitmapDrawer dctx off vpos p
-  return (seg, draw, wd)
+      render _ off mx = when (off + wd <= mx) $ dcBitmapDrawer dctx off vpos p
+  return (seg, render, wd)
 
 drawBox :: DrawContext -> Surface -> Double -> Double -> P.Box -> IO ()
 drawBox dctx surf x0 x1 box@(P.Box _ _ w color _) =

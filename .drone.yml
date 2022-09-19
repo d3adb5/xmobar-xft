@@ -15,8 +15,5 @@ pipeline:
       - hlint src
 
       - cabal update
-      - cabal build --enable-tests -fall_extensions
       - cabal test --enable-tests -fall_extensions
-
-      - cabal test --enable-tests -fall_extensions -f-with_cairo
       - cabal test --enable-tests -fall_extensions -f-with_xrender

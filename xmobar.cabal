@@ -32,10 +32,6 @@ source-repository head
   location:  git://codeberg.org/xmobar/xmobar.git
   branch:    master
 
-flag with_cairo
-  description: Use Cairo and Pango to render anti-aliased text.
-  default: True
-
 flag with_xrender
   description: Use XRender for alpha background pseudo-transparency.
   default: True
@@ -139,6 +135,8 @@ library
                    Xmobar.Text.Output,
                    Xmobar.X11.Bitmap,
                    Xmobar.X11.Boxes,
+                   Xmobar.X11.CairoDraw,
+                   Xmobar.X11.CairoSurface,
                    Xmobar.X11.ColorCache,
                    Xmobar.X11.Draw,
                    Xmobar.X11.Events,
@@ -193,17 +191,19 @@ library
     ghc-options: -funbox-strict-fields -Wall -fno-warn-unused-do-bind
 
     build-depends:
-                  X11 >= 1.6.1,
                   aeson >= 1.4.7.1,
                   async,
                   base >= 4.11.0 && < 4.17,
                   bytestring >= 0.10.8.2,
+                  cairo >= 0.13,
+                  colour >= 2.3.6,
                   containers,
                   directory,
                   extensible-exceptions == 0.1.*,
                   filepath,
                   mtl >= 2.1 && < 2.3,
                   old-locale,
+                  pango >= 0.13,
                   parsec == 3.1.*,
                   parsec-numbers >= 0.1.0,
                   process,
@@ -212,7 +212,8 @@ library
                   time,
                   transformers,
                   unix,
-                  utf8-string >= 0.3 && < 1.1
+                  utf8-string >= 0.3 && < 1.1,
+                  X11 >= 1.6.1
 
     if impl(ghc < 8.0.2)
        -- Disable building with GHC before 8.0.2.
@@ -234,16 +235,6 @@ library
        build-depends: X11-xft >= 0.2
        other-modules: Xmobar.X11.XRender
        cpp-options: -DXRENDER
-
-    if flag(with_cairo)
-       build-depends: cairo >= 0.13,
-                      pango >= 0.13,
-                      colour >= 2.3.6
-       other-modules: Xmobar.X11.CairoSurface,
-                      Xmobar.X11.CairoDraw
-       cpp-options: -DCAIRO
-    else
-       other-modules: Xmobar.X11.XlibDraw
 
     if flag(with_inotify) || flag(all_extensions)
        build-depends: hinotify >= 0.3 && < 0.5

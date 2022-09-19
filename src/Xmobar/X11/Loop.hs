@@ -25,9 +25,9 @@ import Control.Concurrent.STM as STM
 import Control.Monad.Reader as MR
 
 import Data.Bits (Bits((.|.)))
-import qualified Data.Map as Map
 import Data.List.NonEmpty (NonEmpty((:|)))
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Map as Map
 
 import qualified Graphics.X11.Xlib as X11
 import qualified Graphics.X11.Xlib.Extras as X11x
@@ -125,7 +125,7 @@ signalLoop xc@(T.XConf d r w fs is cfg) actions signalv strs = do
         wakeup =  do
           segs <- parseSegments cfg strs
           xc' <- updateIconCache xc segs
-          actions' <- runX xc' $ Draw.drawInWin segs
+          actions' <- runX xc' (Draw.draw segs)
           signalLoop xc' actions' signalv strs
 
         hiderev t sign op
