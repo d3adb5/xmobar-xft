@@ -17,26 +17,39 @@
 
 module Xmobar.X11.Types where
 
-import Graphics.X11.Xlib
-import Control.Monad.Reader
+import qualified Graphics.X11.Xlib as X11
 import qualified Data.List.NonEmpty as NE
+
+import Control.Monad.Reader (ReaderT)
 
 import Xmobar.Config.Types
 import Xmobar.Run.Actions (Action)
-import Xmobar.X11.Bitmap
-import Xmobar.X11.Text
+import Xmobar.Run.Parsers (Segment)
+import Xmobar.X11.Bitmap (Bitmap, BitmapCache)
+import Xmobar.X11.Text (XFont)
 
 -- | The X type is a ReaderT
 type X = ReaderT XConf IO
 
 -- | The ReaderT inner component
 data XConf =
-    XConf { display   :: Display
-          , rect      :: Rectangle
-          , window    :: Window
+    XConf { display   :: X11.Display
+          , rect      :: X11.Rectangle
+          , window    :: X11.Window
           , fontList  :: NE.NonEmpty XFont
           , iconCache :: BitmapCache
           , config    :: Config
           }
 
-type ActionPos = ([Action], Position, Position)
+type ActionPos = ([Action], X11.Position, X11.Position)
+type Actions = [ActionPos]
+
+type BitmapDrawer = Double -> Double -> String -> IO ()
+
+data DrawContext = DC { dcBitmapDrawer :: BitmapDrawer
+                      , dcBitmapLookup :: String -> Maybe Bitmap
+                      , dcConfig :: Config
+                      , dcWidth :: Double
+                      , dcHeight :: Double
+                      , dcSegments :: [[Segment]]
+                      }

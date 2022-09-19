@@ -113,7 +113,7 @@ loadBitmap d w p = do
 drawBitmap :: Display -> Drawable -> GC -> String -> String
               -> Position -> Position -> Bitmap -> IO ()
 drawBitmap d p gc fc bc x y i =
-    withColors d [fc, bc] $ \[fc', bc'] -> do
+  withColors d [fc, bc] $ \[fc', bc'] -> do
     let w = width i
         h = height i
         y' = 1 + y - fromIntegral h `div` 2

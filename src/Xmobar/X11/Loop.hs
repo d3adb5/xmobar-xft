@@ -87,7 +87,7 @@ eventLoop dpy w signalv =
       E.nextEvent' dpy e
 #endif
       ev <- X11x.getEvent e
-      let send s = STM.atomically (STM.putTMVar signalv s)
+      let send = STM.atomically . STM.putTMVar signalv
       case ev of
         X11x.ConfigureEvent {}            -> send S.Reposition
         X11x.RRScreenChangeNotifyEvent {} -> send S.Reposition

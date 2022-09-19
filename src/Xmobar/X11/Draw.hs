@@ -27,7 +27,7 @@ import qualified Graphics.X11.Xlib as X11
 import qualified Xmobar.Config.Types as C
 import qualified Xmobar.Run.Parsers as P
 import qualified Xmobar.X11.Bitmap as B
-import qualified Xmobar.X11.Types as X
+import qualified Xmobar.X11.Types as T
 import qualified Xmobar.X11.CairoDraw as CD
 import qualified Xmobar.X11.CairoSurface as CS
 
@@ -35,18 +35,18 @@ import qualified Xmobar.X11.CairoSurface as CS
 import qualified Xmobar.X11.XRender as XRender
 #endif
 
-drawXBitmap :: X.XConf -> X11.GC -> X11.Pixmap -> CD.BitmapDrawer
+drawXBitmap :: T.XConf -> X11.GC -> X11.Pixmap -> T.BitmapDrawer
 drawXBitmap xconf gc p h v path = do
-  let disp = X.display xconf
-      conf = X.config xconf
+  let disp = T.display xconf
+      conf = T.config xconf
       fc = C.fgColor conf
       bc = C.bgColor conf
   case lookupXBitmap xconf path of
     Just bm -> liftIO $ B.drawBitmap disp p gc fc bc (round h) (round v) bm
     Nothing -> return ()
 
-lookupXBitmap :: X.XConf -> String -> Maybe B.Bitmap
-lookupXBitmap xconf path = M.lookup path (X.iconCache xconf)
+lookupXBitmap :: T.XConf -> String -> Maybe B.Bitmap
+lookupXBitmap xconf path = M.lookup path (T.iconCache xconf)
 
 withPixmap :: X11.Display -> X11.Drawable -> X11.Rectangle -> FT.CInt
            -> (X11.GC -> X11.Pixmap -> IO a) -> IO a
@@ -64,21 +64,21 @@ withPixmap disp win (X11.Rectangle _ _ w h) depth action = do
   X11.sync disp True
   return res
 
-draw :: [[P.Segment]] -> X.X [X.ActionPos]
+draw :: [[P.Segment]] -> T.X [T.ActionPos]
 draw segments = do
   xconf <- ask
-  let disp = X.display xconf
-      win = X.window xconf
-      rect@(X11.Rectangle _ _ w h) = X.rect xconf
+  let disp = T.display xconf
+      win = T.window xconf
+      rect@(X11.Rectangle _ _ w h) = T.rect xconf
       screen = X11.defaultScreenOfDisplay disp
       depth = X11.defaultDepthOfScreen screen
       vis = X11.defaultVisualOfScreen screen
-      conf = X.config xconf
+      conf = T.config xconf
 
   liftIO $ withPixmap disp win rect depth $ \gc p -> do
     let bdraw = drawXBitmap xconf gc p
         blook = lookupXBitmap xconf
-        dctx = CD.DC bdraw blook conf (fromIntegral w) (fromIntegral h) segments
+        dctx = T.DC bdraw blook conf (fromIntegral w) (fromIntegral h) segments
         render = CD.drawSegments dctx
 
 #ifdef XRENDER
