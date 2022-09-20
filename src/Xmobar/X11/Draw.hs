@@ -37,18 +37,21 @@ import qualified Xmobar.X11.CairoSurface as CS
 import qualified Xmobar.X11.XRender as XRender
 #endif
 
-drawXBitmap :: T.XConf -> X11.GC -> X11.Pixmap -> D.BitmapDrawer
+drawXBitmap :: T.XConf -> X11.GC -> X11.Pixmap -> D.IconDrawer
 drawXBitmap xconf gc p h v path = do
   let disp = T.display xconf
       conf = T.config xconf
       fc = C.fgColor conf
       bc = C.bgColor conf
-  case lookupXBitmap xconf path of
+  case M.lookup path (T.iconCache xconf) of
     Just bm -> liftIO $ B.drawBitmap disp p gc fc bc (round h) (round v) bm
     Nothing -> return ()
 
-lookupXBitmap :: T.XConf -> String -> Maybe B.Bitmap
-lookupXBitmap xconf path = M.lookup path (T.iconCache xconf)
+lookupXBitmap :: T.XConf -> String -> (Double, Double)
+lookupXBitmap xconf path =
+  case M.lookup path (T.iconCache xconf) of
+    Just bm -> (fromIntegral (B.width bm), fromIntegral (B.height bm))
+    Nothing -> (0, 0)
 
 withPixmap :: X11.Display -> X11.Drawable -> X11.Rectangle -> FT.CInt
            -> (X11.GC -> X11.Pixmap -> IO a) -> IO a

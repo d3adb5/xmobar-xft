@@ -94,11 +94,10 @@ withRenderinfo _ _ seg@(P.Hspace w, _, _, _) =
   return (seg, \_ _ _ -> return (), fromIntegral w)
 
 withRenderinfo _ dctx seg@(P.Icon p, _, _, _) = do
-  let bm = T.dcBitmapLookup dctx p
-      wd = maybe 0 (fromIntegral . T.bWidth) bm
+  let (wd, _) = T.dcIconLookup dctx p
       ioff = C.iconOffset (T.dcConfig dctx)
       vpos = T.dcHeight dctx / 2  + fromIntegral ioff
-      render _ off mx = when (off + wd <= mx) $ T.dcBitmapDrawer dctx off vpos p
+      render _ off mx = when (off + wd <= mx) $ T.dcIconDrawer dctx off vpos p
   return (seg, render, wd)
 
 drawBox :: T.DrawContext -> Surface -> Double -> Double -> P.Box -> IO ()

@@ -17,10 +17,6 @@
 
 module Xmobar.Draw.Types where
 
-import GHC.Word (Word32, Word64)
-
-import Data.Map (Map)
-
 import Xmobar.Config.Types (Config)
 import Xmobar.Run.Actions (Action)
 import Xmobar.Run.Parsers (Segment)
@@ -29,22 +25,11 @@ type Position = Double
 type ActionPos = ([Action], Position, Position)
 type Actions = [ActionPos]
 
-type BitmapDrawer = Double -> Double -> String -> IO ()
+type IconLookup = String -> (Double, Double)
+type IconDrawer = Double -> Double -> String -> IO ()
 
-data BitmapType = Mono Word64 | Poly
-
-data Bitmap = Bitmap { bWidth  :: Word32
-                     , bHeight :: Word32
-                     , bPixmap :: Word64
-                     , bShapepixmap :: Maybe Word64
-                     , bBitmaptype :: BitmapType
-                     }
-
-type BitmapCache = Map FilePath Bitmap
-
-
-data DrawContext = DC { dcBitmapDrawer :: BitmapDrawer
-                      , dcBitmapLookup :: String -> Maybe Bitmap
+data DrawContext = DC { dcIconDrawer :: IconDrawer
+                      , dcIconLookup :: IconLookup
                       , dcConfig :: Config
                       , dcWidth :: Double
                       , dcHeight :: Double
