@@ -43,6 +43,8 @@ import qualified Xmobar.Run.Parsers as P
 import qualified Xmobar.System.Utils as U
 import qualified Xmobar.System.Signal as S
 
+import qualified Xmobar.Draw.Types as D
+
 import qualified Xmobar.X11.Types as T
 import qualified Xmobar.X11.Text as Text
 import qualified Xmobar.X11.Draw as Draw
@@ -100,11 +102,8 @@ eventLoop dpy w signalv =
 -- The list of actions provides the positions of clickable rectangles,
 -- and there is a mutable variable for received signals and the list
 -- of strings updated by running monitors.
-signalLoop :: T.XConf
-          -> [([A.Action], X11.Position, X11.Position)]
-          -> STM.TMVar S.SignalType
-          -> STM.TVar [String]
-          -> IO ()
+signalLoop ::
+  T.XConf -> D.Actions -> STM.TMVar S.SignalType -> STM.TVar [String] -> IO ()
 signalLoop xc@(T.XConf d r w fs is cfg) actions signalv strs = do
     typ <- STM.atomically $ STM.takeTMVar signalv
     case typ of
@@ -168,9 +167,10 @@ updateConfigPosition disp cfg =
               else (cfg {C.position = C.OnScreen (n+1) o}))
     o -> return (cfg {C.position = C.OnScreen 1 o})
 
-runActions :: [T.ActionPos] -> A.Button -> X11.Position -> IO ()
+runActions :: D.Actions -> A.Button -> X11.Position -> IO ()
 runActions actions button pos =
   mapM_ A.runAction $
    filter (\(A.Spawn b _) -> button `elem` b) $
    concatMap (\(a,_,_) -> a) $
-   filter (\(_, from, to) -> pos >= from && pos <= to) actions
+   filter (\(_, from, to) -> pos' >= from && pos' <= to) actions
+  where pos' = fromIntegral pos

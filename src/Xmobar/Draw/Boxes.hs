@@ -13,7 +13,7 @@
 --
 ------------------------------------------------------------------------------
 
-module Xmobar.X11.Boxes (Line, boxLines, BoxRect, borderRect) where
+module Xmobar.Draw.Boxes (Line, boxLines, BoxRect, borderRect) where
 
 import qualified Xmobar.Config.Types as T
 import qualified Xmobar.Run.Parsers as P

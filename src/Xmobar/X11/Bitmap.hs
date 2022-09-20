@@ -20,10 +20,14 @@ module Xmobar.X11.Bitmap
 import Control.Monad
 import Control.Monad.Trans(MonadIO(..))
 import Data.Map hiding (map)
+
 import Graphics.X11.Xlib hiding (Segment)
+
 import System.Directory (doesFileExist)
 import System.FilePath ((</>))
 import System.Mem.Weak ( addFinalizer )
+
+import Xmobar.Draw.Types (BitmapType(..), Bitmap(..), BitmapCache)
 import Xmobar.X11.ColorCache
 
 #ifdef XPM
@@ -42,17 +46,6 @@ runExceptT :: ErrorT e m a -> m (Either e a)
 runExceptT = runErrorT
 
 #endif
-
-data BitmapType = Mono Pixel | Poly
-
-data Bitmap = Bitmap { width  :: Dimension
-                     , height :: Dimension
-                     , pixmap :: Pixmap
-                     , shapePixmap :: Maybe Pixmap
-                     , bitmapType :: BitmapType
-                     }
-
-type BitmapCache = Map FilePath Bitmap
 
 updateCache :: Display -> Window -> Map FilePath Bitmap -> FilePath -> [FilePath]
             -> IO BitmapCache
@@ -114,15 +107,15 @@ drawBitmap :: Display -> Drawable -> GC -> String -> String
               -> Position -> Position -> Bitmap -> IO ()
 drawBitmap d p gc fc bc x y i =
   withColors d [fc, bc] $ \[fc', bc'] -> do
-    let w = width i
-        h = height i
+    let w = bWidth i
+        h = bHeight i
         y' = 1 + y - fromIntegral h `div` 2
     setForeground d gc fc'
     setBackground d gc bc'
-    case shapePixmap i of
+    case bShapepixmap i of
          Nothing -> return ()
          Just mask -> setClipOrigin d gc x y' >> setClipMask d gc mask
-    case bitmapType i of
-         Poly -> copyArea d (pixmap i) p gc 0 0 w h x y'
-         Mono pl -> copyPlane d (pixmap i) p gc 0 0 w h x y' pl
+    case bBitmaptype i of
+         Poly -> copyArea d (bPixmap i) p gc 0 0 w h x y'
+         Mono pl -> copyPlane d (bPixmap i) p gc 0 0 w h x y' pl
     setClipMask d gc 0

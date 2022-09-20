@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 ------------------------------------------------------------------------------
 -- |
--- Module: Xmobar.X11.CairoDraw
+-- Module: Xmobar.X11.Cairo
 -- Copyright: (c) 2022 Jose Antonio Ortega Ruiz
 -- License: BSD3-style (see LICENSE)
 --
@@ -15,7 +15,7 @@
 --
 ------------------------------------------------------------------------------
 
-module Xmobar.X11.CairoDraw (drawSegments) where
+module Xmobar.Draw.Cairo (drawSegments) where
 
 import qualified Data.Colour.SRGB as SRGB
 import qualified Data.Colour.Names as CNames
@@ -32,9 +32,8 @@ import qualified Xmobar.Config.Parse as ConfigParse
 import qualified Xmobar.Run.Parsers as P
 import qualified Xmobar.Text.Pango as TextPango
 
-import qualified Xmobar.X11.Boxes as Boxes
-import qualified Xmobar.X11.Bitmap as B
-import qualified Xmobar.X11.Types as T
+import qualified Xmobar.Draw.Boxes as Boxes
+import qualified Xmobar.Draw.Types as T
 
 type Renderinfo = (P.Segment, Surface -> Double -> Double -> IO (), Double)
 type BoundedBox = (Double, Double, [P.Box])
@@ -96,7 +95,7 @@ withRenderinfo _ _ seg@(P.Hspace w, _, _, _) =
 
 withRenderinfo _ dctx seg@(P.Icon p, _, _, _) = do
   let bm = T.dcBitmapLookup dctx p
-      wd = maybe 0 (fromIntegral . B.width) bm
+      wd = maybe 0 (fromIntegral . T.bWidth) bm
       ioff = C.iconOffset (T.dcConfig dctx)
       vpos = T.dcHeight dctx / 2  + fromIntegral ioff
       render _ off mx = when (off + wd <= mx) $ T.dcBitmapDrawer dctx off vpos p
@@ -124,7 +123,7 @@ drawSegment :: T.DrawContext -> Surface -> Double -> Acc -> Renderinfo -> IO Acc
 drawSegment dctx surface maxoff (off, acts, boxs) (segment, render, lwidth) = do
   let end = min maxoff (off + lwidth)
       (_, info, _, a) = segment
-      acts' = case a of Just as -> (as, round off, round end):acts; _ -> acts
+      acts' = case a of Just as -> (as, off, end):acts; _ -> acts
       bs = P.tBoxes info
       boxs' = if null bs then boxs else (off, end, bs):boxs
   drawSegmentBackground dctx surface info off end

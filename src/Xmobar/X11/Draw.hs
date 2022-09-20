@@ -26,16 +26,18 @@ import qualified Graphics.X11.Xlib as X11
 
 import qualified Xmobar.Config.Types as C
 import qualified Xmobar.Run.Parsers as P
+import qualified Xmobar.Draw.Types as D
+import qualified Xmobar.Draw.Cairo as DC
+
 import qualified Xmobar.X11.Bitmap as B
 import qualified Xmobar.X11.Types as T
-import qualified Xmobar.X11.CairoDraw as CD
 import qualified Xmobar.X11.CairoSurface as CS
 
 #ifdef XRENDER
 import qualified Xmobar.X11.XRender as XRender
 #endif
 
-drawXBitmap :: T.XConf -> X11.GC -> X11.Pixmap -> T.BitmapDrawer
+drawXBitmap :: T.XConf -> X11.GC -> X11.Pixmap -> D.BitmapDrawer
 drawXBitmap xconf gc p h v path = do
   let disp = T.display xconf
       conf = T.config xconf
@@ -64,7 +66,7 @@ withPixmap disp win (X11.Rectangle _ _ w h) depth action = do
   X11.sync disp True
   return res
 
-draw :: [[P.Segment]] -> T.X [T.ActionPos]
+draw :: [[P.Segment]] -> T.X [D.ActionPos]
 draw segments = do
   xconf <- ask
   let disp = T.display xconf
@@ -78,8 +80,8 @@ draw segments = do
   liftIO $ withPixmap disp win rect depth $ \gc p -> do
     let bdraw = drawXBitmap xconf gc p
         blook = lookupXBitmap xconf
-        dctx = T.DC bdraw blook conf (fromIntegral w) (fromIntegral h) segments
-        render = CD.drawSegments dctx
+        dctx = D.DC bdraw blook conf (fromIntegral w) (fromIntegral h) segments
+        render = DC.drawSegments dctx
 
 #ifdef XRENDER
         color = C.bgColor conf

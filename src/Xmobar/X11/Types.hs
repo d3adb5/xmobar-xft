@@ -23,9 +23,8 @@ import qualified Data.List.NonEmpty as NE
 import Control.Monad.Reader (ReaderT)
 
 import Xmobar.Config.Types
-import Xmobar.Run.Actions (Action)
-import Xmobar.Run.Parsers (Segment)
-import Xmobar.X11.Bitmap (Bitmap, BitmapCache)
+
+import Xmobar.X11.Bitmap (BitmapCache)
 import Xmobar.X11.Text (XFont)
 
 -- | The X type is a ReaderT
@@ -40,16 +39,3 @@ data XConf =
           , iconCache :: BitmapCache
           , config    :: Config
           }
-
-type ActionPos = ([Action], X11.Position, X11.Position)
-type Actions = [ActionPos]
-
-type BitmapDrawer = Double -> Double -> String -> IO ()
-
-data DrawContext = DC { dcBitmapDrawer :: BitmapDrawer
-                      , dcBitmapLookup :: String -> Maybe Bitmap
-                      , dcConfig :: Config
-                      , dcWidth :: Double
-                      , dcHeight :: Double
-                      , dcSegments :: [[Segment]]
-                      }
