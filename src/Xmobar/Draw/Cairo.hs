@@ -159,9 +159,9 @@ drawBoxes dctx surf [bi] = drawBBox dctx surf bi
 drawBoxes _ _ [] = return ()
 
 #ifndef XRENDER
-drawCairoBackground :: DrawContext -> Surface -> IO ()
+drawCairoBackground :: T.DrawContext -> Surface -> IO ()
 drawCairoBackground dctx surf = do
-  let (c, _) = readColourName (C.bgColor (dcConfig dctx))
+  let (c, _) = readColourName (C.bgColor (T.dcConfig dctx))
   Cairo.renderWith surf $ setSourceColor (c, 1.0) >> Cairo.paint
 #endif
 
