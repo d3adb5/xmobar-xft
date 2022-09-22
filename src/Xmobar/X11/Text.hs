@@ -20,16 +20,16 @@ module Xmobar.X11.Text
     , textWidth
     ) where
 
-import Control.Exception (SomeException, handle)
+import qualified Control.Exception as E
+import qualified Foreign as F
+import qualified System.Mem.Weak as W
 
-import Foreign
-import Graphics.X11.Xlib hiding (textExtents, textWidth)
-import Graphics.X11.Xlib.Extras
-import System.Mem.Weak ( addFinalizer )
+import qualified Graphics.X11.Xlib as X
+import qualified Graphics.X11.Xlib.Extras as Xx
 
-type XFont = FontSet
+type XFont = Xx.FontSet
 
-initFont :: Display -> String -> IO XFont
+initFont :: X.Display -> String -> IO XFont
 initFont = initUtf8Font
 
 miscFixedFont :: String
@@ -37,21 +37,21 @@ miscFixedFont = "-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*"
 
 -- | Given a fontname returns the font structure. If the font name is
 --  not valid the default font will be loaded and returned.
-initUtf8Font :: Display -> String -> IO FontSet
+initUtf8Font :: X.Display -> String -> IO Xx.FontSet
 initUtf8Font d s = do
-  (_,_,f) <- handle fallBack getIt
-  addFinalizer f (freeFontSet d f)
+  (_,_,f) <- E.handle fallBack getIt
+  W.addFinalizer f (Xx.freeFontSet d f)
   return f
-      where getIt = createFontSet d s
-            fallBack :: SomeException -> IO ([String], String, FontSet)
-            fallBack = const $ createFontSet d miscFixedFont
+      where getIt = Xx.createFontSet d s
+            fallBack :: E.SomeException -> IO ([String], String, Xx.FontSet)
+            fallBack = const $ Xx.createFontSet d miscFixedFont
 
-textWidth :: Display -> XFont -> String -> IO Int
-textWidth _   fs s = return $ fromIntegral $ wcTextEscapement fs s
+textWidth :: X.Display -> XFont -> String -> IO Int
+textWidth _   fs s = return $ fromIntegral $ Xx.wcTextEscapement fs s
 
-textExtents :: XFont -> String -> IO (Int32,Int32)
+textExtents :: XFont -> String -> IO (F.Int32, F.Int32)
 textExtents fs s = do
-  let (_,rl)  = wcTextExtents fs s
-      ascent  = fromIntegral $ negate (rect_y rl)
-      descent = fromIntegral $ rect_height rl + fromIntegral (rect_y rl)
+  let (_,rl)  = Xx.wcTextExtents fs s
+      ascent  = fromIntegral $ negate (X.rect_y rl)
+      descent = fromIntegral $ X.rect_height rl + fromIntegral (X.rect_y rl)
   return (ascent, descent)

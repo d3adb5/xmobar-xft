@@ -116,7 +116,7 @@ getMonitorConfig MC{..} = do
   pBarBack <- readIORef barBack
   pBarFore <- readIORef barFore
   pBarWidth <- readIORef barWidth
-  pUseSuffix <- readIORef useSuffix 
+  pUseSuffix <- readIORef useSuffix
   pNaString <- readIORef naString
   pMaxTotalWidth <- readIORef maxTotalWidth
   pMaxTotalWidthEllipsis <- readIORef maxTotalWidthEllipsis
