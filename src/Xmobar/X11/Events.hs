@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 -- |
 -- Module: Xmobar.X11.Events
--- Copyright: (c) 2018 Jose Antonio Ortega Ruiz
+-- Copyright: (c) 2018, 2022 Jose Antonio Ortega Ruiz
 -- License: BSD3-style (see LICENSE)
 --
 -- Maintainer: jao@gnu.org
@@ -17,20 +17,19 @@
 
 module Xmobar.X11.Events(nextEvent') where
 
-import Control.Concurrent
-import System.Posix.Types (Fd(..))
+import qualified Control.Concurrent as C
+import qualified System.Posix.Types as T
 
-import Graphics.X11.Xlib (
-  Display(..), XEventPtr, nextEvent, pending, connectionNumber)
+import qualified Graphics.X11.Xlib as X
 
 -- | A version of nextEvent that does not block in foreign calls.
-nextEvent' :: Display -> XEventPtr -> IO ()
+nextEvent' :: X.Display -> X.XEventPtr -> IO ()
 nextEvent' d p = do
-    pend <- pending d
+    pend <- X.pending d
     if pend /= 0
-        then nextEvent d p
+        then X.nextEvent d p
         else do
-            threadWaitRead (Fd fd)
+            C.threadWaitRead (T.Fd fd)
             nextEvent' d p
  where
-    fd = connectionNumber d
+    fd = X.connectionNumber d

@@ -13,14 +13,14 @@
 -----------------------------------------------------------------------------
 module Xmobar.System.Environment(expandEnv) where
 
-import Data.Maybe (fromMaybe)
-import System.Environment   (lookupEnv)
+import qualified Data.Maybe as M
+import qualified System.Environment as E
 
 expandEnv :: String -> IO String
 expandEnv "" = return ""
 expandEnv (c:s) = case c of
   '$'       -> do
-    envVar <- fromMaybe "" <$> lookupEnv e
+    envVar <- M.fromMaybe "" <$> E.lookupEnv e
     remainder <- expandEnv s'
     return $ envVar ++ remainder
     where (e, s') = getVar s
