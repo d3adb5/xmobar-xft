@@ -134,7 +134,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
    For instance you could have:
 
    #+begin_example
-      Souce Code Pro, Not Color Emoji Regular 12, Semi-Bold 10
+      Souce Code Pro, Noto Color Emoji Regular 12, Semi-Bold 10
    #+end_example
 
    to use Source Code Pro Semi-Bold 10 when possible, and fall back to Noto

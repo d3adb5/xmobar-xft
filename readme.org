@@ -157,7 +157,7 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
   Janoušek, Ada Joule, Spencer Janssen, Roman Joost, Pavel Kalugin,
   Jochen Keil, Sam Kirby, Lennart Kolmodin, Krzysztof Kosciuszkiewicz,
   Dmitry Kurochkin, Todd Lunter, Vanessa McHale, Robert J. Macomber,
-  Dmitry Malikov, David McLean, Joan MIlev, Marcin Mikołajczyk, Dino
+  Dmitry Malikov, David McLean, Joan Milev, Marcin Mikołajczyk, Dino
   Morelli, Tony Morris, Eric Mrak, Thiago Negri, Edward O'Callaghan,
   Svein Ove, Martin Perner, Jens Petersen, Alexander Polakov, Sibi
   Prabakaran, Pavan Rikhi, Petr Rockai, Andrew Emmanuel Rosa,
