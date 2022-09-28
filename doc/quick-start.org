@@ -20,7 +20,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
 
   This is the list of command line options (the output of =xmobar --help=):
 
-  #+begin_src shell
+  #+begin_example
     Usage: xmobar [OPTION...] [FILE]
     Options:
     -h, -?        --help                 This help
@@ -38,19 +38,20 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
     -o            --top                  Place xmobar at the top of the screen
     -b            --bottom               Place xmobar at the bottom of the screen
     -d            --dock                 Don't override redirect from WM and function as a dock
-      -a alignsep   --alignsep=alignsep    Separators for left, center and right text
-                                           alignment. Default: '}{'
-      -s char       --sepchar=char         Character used to separate commands in
-                                           the output template. Default '%'
-      -t template   --template=template    Output template
-      -c commands   --commands=commands    List of commands to be executed
-      -C command    --add-command=command  Add to the list of commands to be executed
-      -x screen     --screen=screen        On which X screen number to start
-      -p position   --position=position    Specify position of xmobar. Same syntax as in config file
-      -T [format]   --text[=format]        Write output to stdout
+    -a alignsep   --alignsep=alignsep    Separators for left, center and right text
+                                         alignment. Default: '}{'
+    -s char       --sepchar=char         Character used to separate commands in
+                                         the output template. Default '%'
+    -t template   --template=template    Output template
+    -c commands   --commands=commands    List of commands to be executed
+    -C command    --add-command=command  Add to the list of commands to be executed
+    -x screen     --screen=screen        On which X screen number to start
+    -p position   --position=position    Specify position of xmobar. Same syntax as in config file
+    -T [format]   --text[=format]        Write output to stdout
 
-    Mail bug reports and suggestions to <mail@jao.io>
-  #+end_src
+     Mail bug reports and suggestions to <mail@jao.io>
+  #+end_example
+
 * Configuration Options
   :PROPERTIES:
   :CUSTOM_ID: configuration-options
@@ -123,10 +124,17 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
 
    It's also possible to specify a list of fonts, separating them by commas,
    so that they act as fallbacks when the preceding one is not able to display
-   a given glyph.  For instance you could have:
+   a given glyph.  A bit confusingly, the styles and sizes come in reverse
+   order after the families:
 
    #+begin_example
-      Souce Code Pro, Not Color Emoji Semi-Bold, Regular 10, 12
+      Family 1, Family 2 Styles 2 Size 2, Styles 1 Size 1
+   #+end_example
+
+   For instance you could have:
+
+   #+begin_example
+      Souce Code Pro, Not Color Emoji Regular 12, Semi-Bold 10
    #+end_example
 
    to use Source Code Pro Semi-Bold 10 when possible, and fall back to Noto
