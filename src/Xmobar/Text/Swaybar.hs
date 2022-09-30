@@ -24,16 +24,16 @@ import Data.ByteString.Lazy.UTF8 (toString)
 
 import GHC.Generics
 
-import Xmobar.Config.Types (Config (additionalFonts))
+import Xmobar.Config.Types ( Config (additionalFonts)
+                           , Segment
+                           , Widget(..)
+                           , Box(..)
+                           , BoxBorder(..)
+                           , FontIndex
+                           , tBoxes
+                           , tColorsString)
 
-import Xmobar.Run.Parsers ( Segment
-                          , Widget(..)
-                          , Box(..)
-                          , BoxBorder(..)
-                          , FontIndex
-                          , tBoxes
-                          , tColorsString
-                          , colorComponents)
+import Xmobar.Config.Parse (colorComponents)
 
 import Xmobar.Text.SwaybarClicks (startHandler)
 import Xmobar.Text.Pango (withPangoFont)

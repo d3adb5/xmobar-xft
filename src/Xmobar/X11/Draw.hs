@@ -25,7 +25,6 @@ import Foreign.C.Types as FT
 import qualified Graphics.X11.Xlib as X11
 
 import qualified Xmobar.Config.Types as C
-import qualified Xmobar.Run.Parsers as P
 import qualified Xmobar.Draw.Types as D
 import qualified Xmobar.Draw.Cairo as DC
 
@@ -69,7 +68,7 @@ withPixmap disp win (X11.Rectangle _ _ w h) depth action = do
   X11.sync disp True
   return res
 
-draw :: [[P.Segment]] -> T.X [D.ActionPos]
+draw :: [[C.Segment]] -> T.X [D.ActionPos]
 draw segments = do
   xconf <- ask
   let disp = T.display xconf

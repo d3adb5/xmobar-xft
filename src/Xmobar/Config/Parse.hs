@@ -19,7 +19,8 @@
 module Xmobar.Config.Parse(readConfig
                           , parseConfig
                           , indexedFont
-                          , indexedOffset) where
+                          , indexedOffset
+                          , colorComponents) where
 
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Number (int)
@@ -30,6 +31,14 @@ import Data.Functor ((<&>))
 import Xmobar.Config.Types
 
 import qualified System.IO as S (readFile)
+
+-- | Splits a colors string into its two components
+colorComponents :: Config -> String -> (String, String)
+colorComponents conf c =
+  case break (==',') c of
+    (f,',':b) -> (f, b)
+    (f,    _) -> (f, bgColor conf)
+
 
 stripComments :: String -> String
 stripComments =

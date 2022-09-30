@@ -15,13 +15,27 @@
 module Xmobar.Config.Types
     ( Config (..)
     , XPosition (..), Align (..), Border (..), TextOutputFormat (..)
+    , Segment
     , FontIndex
+    , Box(..)
+    , BoxBorder(..)
+    , BoxOffset(..)
+    , BoxMargins(..)
+    , TextRenderInfo(..)
+    , Widget(..)
     , SignalChan (..)
+    , Action (..)
+    , Button
     ) where
 
 import qualified Control.Concurrent.STM as STM
 import qualified Xmobar.Run.Runnable as R
 import qualified Xmobar.System.Signal as S
+
+import Data.Int (Int32)
+import Foreign.C.Types (CInt)
+
+import Xmobar.Run.Actions (Action (..), Button)
 
 -- $config
 -- Configuration data type
@@ -110,3 +124,34 @@ instance Read SignalChan where
 instance Show SignalChan where
   show (SignalChan (Just _)) = "SignalChan (Just <tmvar>)"
   show (SignalChan Nothing) = "SignalChan Nothing"
+
+data Widget = Icon String | Text String | Hspace Int32 deriving Show
+
+data BoxOffset = BoxOffset Align Int32 deriving (Eq, Show)
+
+-- margins: Top, Right, Bottom, Left
+data BoxMargins = BoxMargins Int32 Int32 Int32 Int32 deriving (Eq, Show)
+
+data BoxBorder = BBTop
+               | BBBottom
+               | BBVBoth
+               | BBLeft
+               | BBRight
+               | BBHBoth
+               | BBFull
+                 deriving (Read, Eq, Show)
+
+data Box = Box { bBorder :: BoxBorder
+               , bOffset :: BoxOffset
+               , bWidth :: CInt
+               , bColor :: String
+               , bMargins :: BoxMargins
+               } deriving (Eq, Show)
+
+data TextRenderInfo = TextRenderInfo { tColorsString   :: String
+                                     , tBgTopOffset    :: Int32
+                                     , tBgBottomOffset :: Int32
+                                     , tBoxes          :: [Box]
+                                     } deriving Show
+
+type Segment = (Widget, TextRenderInfo, FontIndex, Maybe [Action])

@@ -29,14 +29,13 @@ import Graphics.Rendering.Cairo.Types(Surface)
 
 import qualified Xmobar.Config.Types as C
 import qualified Xmobar.Config.Parse as ConfigParse
-import qualified Xmobar.Run.Parsers as P
 import qualified Xmobar.Text.Pango as TextPango
 
 import qualified Xmobar.Draw.Boxes as Boxes
 import qualified Xmobar.Draw.Types as T
 
-type Renderinfo = (P.Segment, Surface -> Double -> Double -> IO (), Double)
-type BoundedBox = (Double, Double, [P.Box])
+type Renderinfo = (C.Segment, Surface -> Double -> Double -> IO (), Double)
+type BoundedBox = (Double, Double, [C.Box])
 type Acc = (Double, T.Actions, [BoundedBox])
 
 readColourName :: String -> (SRGB.Colour Double, Double)
@@ -63,10 +62,10 @@ renderLines color wd lns = do
   mapM_ (\(x0, y0, x1, y1) ->
            Cairo.moveTo x0 y0 >> Cairo.lineTo x1 y1 >> Cairo.stroke) lns
 
-segmentMarkup :: C.Config -> P.Segment -> String
-segmentMarkup conf (P.Text txt, info, idx, _actions) =
+segmentMarkup :: C.Config -> C.Segment -> String
+segmentMarkup conf (C.Text txt, info, idx, _actions) =
   let fnt = TextPango.fixXft $ ConfigParse.indexedFont conf idx
-      (fg, bg) = P.colorComponents conf (P.tColorsString info)
+      (fg, bg) = ConfigParse.colorComponents conf (C.tColorsString info)
       attrs = [Pango.FontDescr fnt, Pango.FontForeground fg]
       attrs' = if bg == C.bgColor conf
                then attrs
@@ -74,8 +73,8 @@ segmentMarkup conf (P.Text txt, info, idx, _actions) =
   in Pango.markSpan attrs' $ Pango.escapeMarkup txt
 segmentMarkup _ _ = ""
 
-withRenderinfo :: Pango.PangoContext -> T.DrawContext -> P.Segment -> IO Renderinfo
-withRenderinfo ctx dctx seg@(P.Text _, inf, idx, a) = do
+withRenderinfo :: Pango.PangoContext -> T.DrawContext -> C.Segment -> IO Renderinfo
+withRenderinfo ctx dctx seg@(C.Text _, inf, idx, a) = do
   let conf = T.dcConfig dctx
   lyt <- Pango.layoutEmpty ctx
   mk <- Pango.layoutSetMarkup lyt (segmentMarkup conf seg) :: IO String
@@ -88,25 +87,25 @@ withRenderinfo ctx dctx seg@(P.Text _, inf, idx, a) = do
           Pango.layoutSetEllipsize lyt Pango.EllipsizeEnd
           Pango.layoutSetWidth lyt (Just $ mx - off)
         Cairo.renderWith s $ Cairo.moveTo off voff >> Pango.showLayout lyt
-  return ((P.Text mk, inf, idx, a), slyt, wd)
+  return ((C.Text mk, inf, idx, a), slyt, wd)
 
-withRenderinfo _ _ seg@(P.Hspace w, _, _, _) =
+withRenderinfo _ _ seg@(C.Hspace w, _, _, _) =
   return (seg, \_ _ _ -> return (), fromIntegral w)
 
-withRenderinfo _ dctx seg@(P.Icon p, _, _, _) = do
+withRenderinfo _ dctx seg@(C.Icon p, _, _, _) = do
   let (wd, _) = T.dcIconLookup dctx p
       ioff = C.iconOffset (T.dcConfig dctx)
       vpos = T.dcHeight dctx / 2  + fromIntegral ioff
       render _ off mx = when (off + wd <= mx) $ T.dcIconDrawer dctx off vpos p
   return (seg, render, wd)
 
-drawBox :: T.DrawContext -> Surface -> Double -> Double -> P.Box -> IO ()
-drawBox dctx surf x0 x1 box@(P.Box _ _ w color _) =
+drawBox :: T.DrawContext -> Surface -> Double -> Double -> C.Box -> IO ()
+drawBox dctx surf x0 x1 box@(C.Box _ _ w color _) =
   Cairo.renderWith surf $
     renderLines color (fromIntegral w) (Boxes.boxLines box (T.dcHeight dctx) x0 x1)
 
 drawSegmentBackground ::
-  T.DrawContext -> Surface -> P.TextRenderInfo -> Double -> Double -> IO ()
+  T.DrawContext -> Surface -> C.TextRenderInfo -> Double -> Double -> IO ()
 drawSegmentBackground dctx surf info x0 x1 =
   when (bg /= C.bgColor conf && (top >= 0 || bot >= 0)) $
     Cairo.renderWith surf $ do
@@ -114,16 +113,16 @@ drawSegmentBackground dctx surf info x0 x1 =
       Cairo.rectangle x0 top (x1 - x0) (T.dcHeight dctx - bot - top)
       Cairo.fillPreserve
   where conf = T.dcConfig dctx
-        (_, bg) = P.colorComponents conf (P.tColorsString info)
-        top = fromIntegral $ P.tBgTopOffset info
-        bot = fromIntegral $ P.tBgBottomOffset info
+        (_, bg) = ConfigParse.colorComponents conf (C.tColorsString info)
+        top = fromIntegral $ C.tBgTopOffset info
+        bot = fromIntegral $ C.tBgBottomOffset info
 
 drawSegment :: T.DrawContext -> Surface -> Double -> Acc -> Renderinfo -> IO Acc
 drawSegment dctx surface maxoff (off, acts, boxs) (segment, render, lwidth) = do
   let end = min maxoff (off + lwidth)
       (_, info, _, a) = segment
       acts' = case a of Just as -> (as, off, end):acts; _ -> acts
-      bs = P.tBoxes info
+      bs = C.tBoxes info
       boxs' = if null bs then boxs else (off, end, bs):boxs
   drawSegmentBackground dctx surface info off end
   render surface off maxoff

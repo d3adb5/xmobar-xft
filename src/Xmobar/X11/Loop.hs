@@ -35,10 +35,10 @@ import qualified Graphics.X11.Xinerama as Xinerama
 import qualified Graphics.X11.Xrandr as Xrandr
 
 import qualified Xmobar.Config.Types as C
+import qualified Xmobar.Config.Template as CT
 
 import qualified Xmobar.Run.Actions as A
 import qualified Xmobar.Run.Loop as L
-import qualified Xmobar.Run.Parsers as P
 
 import qualified Xmobar.System.Utils as U
 import qualified Xmobar.System.Signal as S
@@ -145,15 +145,15 @@ signalLoop xc@(T.XConf d r w fs is cfg) actions signalv strs = do
           r' <- W.repositionWin d w (NE.head fs) rcfg
           signalLoop (T.XConf d r' w fs is rcfg) actions signalv strs
 
-parseSegments :: C.Config -> STM.TVar [String] -> IO [[P.Segment]]
+parseSegments :: C.Config -> STM.TVar [String] -> IO [[C.Segment]]
 parseSegments conf v = do
   s <- STM.readTVarIO v
   let l:c:r:_ = s ++ repeat ""
-  MR.liftIO $ mapM (P.parseString conf) [l, c, r]
+  MR.liftIO $ mapM (CT.parseString conf) [l, c, r]
 
-updateIconCache :: T.XConf -> [[P.Segment]] -> IO T.XConf
+updateIconCache :: T.XConf -> [[C.Segment]] -> IO T.XConf
 updateIconCache xc@(T.XConf d _ w _ c cfg) segs = do
-  let paths = [p | (P.Icon p, _, _, _) <- concat segs]
+  let paths = [p | (C.Icon p, _, _, _) <- concat segs]
   c' <- Bitmap.updateCache d w c (C.iconRoot cfg) paths
   return $ xc {T.iconCache = c'}
 

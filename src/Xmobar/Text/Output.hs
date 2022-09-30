@@ -15,13 +15,15 @@
 
 module Xmobar.Text.Output (initLoop, format) where
 
-import Xmobar.Config.Types (Config(textOutputFormat, additionalFonts, font)
-                           , TextOutputFormat(..))
-import Xmobar.Run.Parsers ( Segment
-                          , Widget(..)
-                          , parseString
-                          , tColorsString
-                          , colorComponents)
+import Xmobar.Config.Types ( Config (..)
+                           , TextOutputFormat (..)
+                           , Segment
+                           , Widget (..)
+                           , tColorsString)
+
+
+import Xmobar.Config.Parse (colorComponents)
+import Xmobar.Config.Template (parseString)
 
 import Xmobar.Text.Ansi (withAnsiColor)
 import Xmobar.Text.Pango (withPangoMarkup)

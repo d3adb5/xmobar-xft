@@ -16,7 +16,6 @@
 module Xmobar.Draw.Boxes (Line, boxLines, BoxRect, borderRect) where
 
 import qualified Xmobar.Config.Types as T
-import qualified Xmobar.Run.Parsers as P
 
 type Line = (Double, Double, Double, Double)
 type BoxRect = (Double, Double, Double, Double)
@@ -25,19 +24,19 @@ type BoxRect = (Double, Double, Double, Double)
 -- The Box is to be positioned between x0 and x1, with height ht, and drawn
 -- with line width lw.  The returned lists are coordinates of the beginning
 -- and end of each line.
-boxLines :: P.Box -> Double -> Double -> Double -> [Line]
-boxLines (P.Box bd offset lw _ margins) ht x0 x1 =
+boxLines :: T.Box -> Double -> Double -> Double -> [Line]
+boxLines (T.Box bd offset lw _ margins) ht x0 x1 =
   case bd of
-    P.BBTop    -> [rtop]
-    P.BBBottom -> [rbot]
-    P.BBVBoth  -> [rtop, rbot]
-    P.BBLeft   -> [rleft]
-    P.BBRight  -> [rright]
-    P.BBHBoth  -> [rleft, rright]
-    P.BBFull   -> [rtop, rbot, rleft, rright]
+    T.BBTop    -> [rtop]
+    T.BBBottom -> [rbot]
+    T.BBVBoth  -> [rtop, rbot]
+    T.BBLeft   -> [rleft]
+    T.BBRight  -> [rright]
+    T.BBHBoth  -> [rleft, rright]
+    T.BBFull   -> [rtop, rbot, rleft, rright]
   where
-    (P.BoxMargins top right bot left) = margins
-    (P.BoxOffset align m) = offset
+    (T.BoxMargins top right bot left) = margins
+    (T.BoxOffset align m) = offset
     ma = fromIntegral m
     (p0, p1) = case align of
                  T.L -> (0, -ma)

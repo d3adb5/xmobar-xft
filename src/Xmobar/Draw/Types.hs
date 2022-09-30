@@ -17,9 +17,8 @@
 
 module Xmobar.Draw.Types where
 
-import Xmobar.Config.Types (Config)
+import Xmobar.Config.Types (Config, Segment)
 import Xmobar.Run.Actions (Action)
-import Xmobar.Run.Parsers (Segment)
 
 type Position = Double
 type ActionPos = ([Action], Position, Position)
