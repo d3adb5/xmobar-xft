@@ -45,4 +45,4 @@ eventLoop cfg signal tv = do
 updateString :: Config -> TVar [String] -> IO String
 updateString conf v = do
   s <- readTVarIO v
-  format conf (concat s)
+  return $ format conf (concat s)

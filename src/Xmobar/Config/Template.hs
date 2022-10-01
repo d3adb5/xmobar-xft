@@ -21,23 +21,21 @@ import Control.Monad (guard, mzero)
 import Data.Maybe (fromMaybe)
 
 import Text.Parsec ((<|>))
+import Text.Read (readMaybe)
+
 import qualified Text.Parsec as P
 import qualified Text.Parsec.Combinator as C
-import Text.ParserCombinators.Parsec (Parser)
 
-import Text.Read (readMaybe)
+import Text.ParserCombinators.Parsec (Parser)
 
 import Xmobar.Config.Types
 
 -- | Runs the template string parser
-parseString :: Config -> String -> IO [Segment]
+parseString :: Config -> String -> [Segment]
 parseString c s =
     case P.parse (stringParser ci 0 Nothing) "" s of
-      Left  _ -> return [(Text $ "Could not parse string: " ++ s
-                          , ci
-                          , 0
-                          , Nothing)]
-      Right x -> return (concat x)
+      Left  _ -> [(Text $ "Could not parse string: " ++ s , ci , 0 , Nothing)]
+      Right x -> concat x
     where ci = TextRenderInfo (fgColor c) 0 0 []
 
 allParsers :: TextRenderInfo -> FontIndex -> Maybe [Action] -> Parser [Segment]

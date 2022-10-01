@@ -149,7 +149,7 @@ parseSegments :: C.Config -> STM.TVar [String] -> IO [[C.Segment]]
 parseSegments conf v = do
   s <- STM.readTVarIO v
   let l:c:r:_ = s ++ repeat ""
-  MR.liftIO $ mapM (CT.parseString conf) [l, c, r]
+  return $ map (CT.parseString conf) [l, c, r]
 
 updateIconCache :: T.XConf -> [[C.Segment]] -> IO T.XConf
 updateIconCache xc@(T.XConf d _ w _ c cfg) segs = do
