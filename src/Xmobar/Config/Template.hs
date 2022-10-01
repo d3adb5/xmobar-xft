@@ -17,8 +17,8 @@
 
 module Xmobar.Config.Template (parseString) where
 
-import Control.Monad (guard, mzero)
 import Data.Maybe (fromMaybe)
+import qualified Control.Monad as CM
 
 import Text.Parsec ((<|>))
 import Text.Read (readMaybe)
@@ -35,7 +35,8 @@ type Context = (T.TextRenderInfo, T.FontIndex, Maybe [T.Action])
 retSegment :: Context -> T.Widget -> Parser [T.Segment]
 retSegment (i, idx, as) widget = return [(widget, i, idx, as)]
 
--- | Run the template string parser
+-- | Run the template string parser for the given config, producing a list of
+-- drawable segment specifications.
 parseString :: T.Config -> String -> [T.Segment]
 parseString c s =
     case P.parse (stringParser ci) "" s of
@@ -44,38 +45,37 @@ parseString c s =
     where ci = (ti , 0, Nothing)
           ti = T.TextRenderInfo (T.fgColor c) 0 0 []
 
--- | Top level parser reading the full template string
+-- Top level parser reading the full template string
 stringParser :: Context -> Parser [[T.Segment]]
 stringParser c = C.manyTill (allParsers c) C.eof
 
 allParsers :: Context -> Parser [T.Segment]
-allParsers c = foldl (\p fn -> p <|> P.try (fn c)) (textParser c)
-                     [ iconParser, hspaceParser, rawParser, actionParser
-                     , fontParser, boxParser, colorParser]
+allParsers c = C.choice (textParser c:map (\f -> P.try (f c)) parsers)
+  where parsers = [ iconParser, hspaceParser, rawParser, actionParser
+                  , fontParser, boxParser, colorParser ]
 
--- | Wrapper for notFollowedBy that returns the result of the first parser.
---   Also works around the issue that, at least in Parsec 3.0.0, notFollowedBy
---   accepts only parsers with return type Char.
+-- Wrapper for notFollowedBy that returns the result of the first parser.
+-- Also works around the issue that, at least in Parsec 3.0.0, notFollowedBy
+-- accepts only parsers with return type Char.
 notFollowedBy' :: Parser a -> Parser b -> Parser a
 notFollowedBy' p e = do x <- p
                         C.notFollowedBy $ P.try (e >> return '*')
                         return x
 
--- | Parse a maximal string without markup
+-- Parse a maximal string without markup
 textParser :: Context -> Parser [T.Segment]
 textParser c =
-  C.many1 (P.noneOf "<" <|> P.try (notFollowedBy' (P.char '<') trys'))
+  C.many1 (P.noneOf "<" <|> P.try (notFollowedBy' (P.char '<') suffixes))
   >>= retSegment c . T.Text
-  where trys = P.try . P.string
-        trys' = foldl (\p s -> p <|> trys s) (trys "fc=")
-                      [ "box", "fn=", "action=", "/action>", "icon="
-                      , "hspace=", "raw=", "/fn>", "/box>",  "/fc>"]
+  where suffixes = C.choice $  map (P.try . P.string)
+                   [ "icon=" , "hspace=", "raw="
+                   , "action=", "/action>", "fn=", "/fn>"
+                   , "box", "/box>", "fc=", "/fc>" ]
 
--- | Parse a "raw" tag, which we use to prevent other tags from creeping in.
--- The format here is net-string-esque: a literal "<raw=" followed by a
--- string of digits (base 10) denoting the length of the raw string,
--- a literal ":" as digit-string-terminator, the raw string itself, and
--- then a literal "/>".
+-- Parse a "raw" tag, which we use to prevent other tags from creeping in.
+-- The format here is net-string-esque: a literal "<raw=" followed by a string
+-- of digits (base 10) denoting the length of the raw string, a literal ":" as
+-- digit-string-terminator, the raw string itself, and then a literal "/>".
 rawParser :: Context -> Parser [T.Segment]
 rawParser c = do
   P.string "<raw="
@@ -83,11 +83,11 @@ rawParser c = do
   P.char ':'
   case reads lenstr of
     [(len,[])] -> do
-      guard ((len :: Integer) <= fromIntegral (maxBound :: Int))
+      CM.guard ((len :: Integer) <= fromIntegral (maxBound :: Int))
       s <- C.count (fromIntegral len) P.anyChar
       P.string "/>"
       retSegment c (T.Text s)
-    _ -> mzero
+    _ -> CM.mzero
 
 iconParser :: Context -> Parser [T.Segment]
 iconParser c = do
@@ -104,8 +104,8 @@ hspaceParser c = do
 actionParser :: Context -> Parser [T.Segment]
 actionParser (ti, fi, act) = do
   P.string "<action="
-  command <- C.choice [C.between (P.char '`') (P.char '`') (C.many1 (P.noneOf "`")),
-                   C.many1 (P.noneOf ">")]
+  command <- C.choice [C.between (P.char '`') (P.char '`') (C.many1 (P.noneOf "`"))
+                      , C.many1 (P.noneOf ">")]
   buttons <- (P.char '>' >> return "1") <|> (P.space >> P.spaces >>
     C.between (P.string "button=") (P.string ">") (C.many1 (P.oneOf "12345")))
   let a = T.Spawn (toButtons buttons) command
@@ -118,10 +118,9 @@ actionParser (ti, fi, act) = do
 toButtons :: String -> [T.Button]
 toButtons = map (\x -> read [x])
 
--- | Parse a string wrapped in a color specification
 colorParser :: Context -> Parser [T.Segment]
 colorParser (T.TextRenderInfo _ _ _ bs, fidx, a) = do
-  c <- C.between (P.string "<fc=") (P.string ">") colors
+  c <- C.between (P.string "<fc=") (P.string ">") (C.many1 colorc)
   let colorParts = break (==':') c
   let (ot,ob) = case break (==',') (drop 1 $ snd colorParts) of
                   (top,',':btm) -> (top, btm)
@@ -132,17 +131,12 @@ colorParser (T.TextRenderInfo _ _ _ bs, fidx, a) = do
                            bs
   s <- C.manyTill (allParsers (tri, fidx, a)) (P.try $ P.string "</fc>")
   return (concat s)
-  where colors = C.many1 (P.alphaNum <|> P.char ',' <|> P.char ':' <|> P.char '#')
+  where colorc = P.alphaNum <|> P.oneOf ",:#"
 
--- | Parse a string wrapped in a box specification
 boxParser :: Context -> Parser [T.Segment]
 boxParser (T.TextRenderInfo cs ot ob bs, f, a) = do
   c <- C.between (P.string "<box") (P.string ">")
-                 (C.option "" (C.many1 (P.alphaNum
-                                        <|> P.char '='
-                                        <|> P.char ' '
-                                        <|> P.char '#'
-                                        <|> P.char ',')))
+                 (C.option "" (C.many1 (P.alphaNum <|> P.oneOf "= #,")))
   let b = T.Box T.BBFull (T.BoxOffset T.C 0) 1 cs (T.BoxMargins 0 0 0 0)
   let g = boxReader b (words c)
   s <- C.manyTill
@@ -186,7 +180,6 @@ boxParamReader (T.Box bb off lw fc mgs@(T.BoxMargins mt mr mb ml)) ('m':pos) v =
 
 boxParamReader b _ _ = b
 
--- | Parse a string wrapped in a font specification
 fontParser :: Context -> Parser [T.Segment]
 fontParser (i, _, a) = do
   f <- C.between (P.string "<fn=") (P.string ">") (C.many1 P.digit)
