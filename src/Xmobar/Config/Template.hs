@@ -39,11 +39,11 @@ retSegment (i, idx, as) widget = return [(widget, i, idx, as)]
 -- drawable segment specifications.
 parseString :: T.Config -> String -> [T.Segment]
 parseString c s =
-    case P.parse (stringParser ci) "" s of
-      Left  _ -> [(T.Text $ "Could not parse string: " ++ s, ti, 0, Nothing)]
-      Right x -> concat x
-    where ci = (ti , 0, Nothing)
-          ti = T.TextRenderInfo (T.fgColor c) 0 0 []
+  case P.parse (stringParser ci) "" s of
+    Left  _ -> [(T.Text $ "Could not parse string: " ++ s, ti, 0, Nothing)]
+    Right x -> concat x
+  where ci = (ti , 0, Nothing)
+        ti = T.TextRenderInfo (T.fgColor c) 0 0 []
 
 -- Top level parser reading the full template string
 stringParser :: Context -> Parser [[T.Segment]]
@@ -104,8 +104,8 @@ hspaceParser c = do
 actionParser :: Context -> Parser [T.Segment]
 actionParser (ti, fi, act) = do
   P.string "<action="
-  command <- C.choice [C.between (P.char '`') (P.char '`') (C.many1 (P.noneOf "`"))
-                      , C.many1 (P.noneOf ">")]
+  command <- C.between (P.char '`') (P.char '`') (C.many1 (P.noneOf "`"))
+             <|> C.many1 (P.noneOf ">")
   buttons <- (P.char '>' >> return "1") <|> (P.space >> P.spaces >>
     C.between (P.string "button=") (P.string ">") (C.many1 (P.oneOf "12345")))
   let a = T.Spawn (toButtons buttons) command
