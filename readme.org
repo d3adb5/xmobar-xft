@@ -29,6 +29,17 @@ output, in a variety of formats.
 Check [[./changelog.md][the change log]] for our release history.  We also have an IRC
 channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
 
+* Breaking news
+
+  - Starting with version 0.45 we use cairo/pango as our drawing engine
+    (instead of plain X11/Xft).  From a user's point of view, that change
+    should be mostly transparent, except for the facts that it's allowed
+    fixing quite a few bugs and that your /font names/ in your configuration, if
+    you used ~xft~ ones, might need to be adapted to Pango's syntax: please see
+    [[./doc/quick-start.org#fonts][this section of the documentation]] for all the details.  If you're
+    compiling your own xmobar, there's a new dependency on libpango (see
+    [[./doc/compiling.org#c-libraries][C library dependencies]]).
+
 * Installation
   :PROPERTIES:
   :CUSTOM_ID: installation

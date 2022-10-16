@@ -1,3 +1,7 @@
+## Version 0.45 (October, 2022)
+
+- New cairo/pango font drawing backend, substituting the direct X11/Xft one.
+
 ## Version 0.44.2 (August, 2022)
 
 - Documentation improvements.
