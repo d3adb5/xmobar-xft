@@ -40,7 +40,7 @@
         }
 
     main :: IO ()
-    main = xmobar config
+    main = xmobar config  -- or: configFromArgs config >>= xmobar
   #+end_src
 
   You can then for instance run =ghc --make xmobar.hs= to create a new xmobar
