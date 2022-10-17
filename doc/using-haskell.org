@@ -26,7 +26,7 @@
     config :: Config
     config =
       defaultConfig
-        { font = "xft:Terminus-8",
+        { font = "DejaVu Sans Mono 9",
           allDesktops = True,
           alpha = 200,
           commands =
