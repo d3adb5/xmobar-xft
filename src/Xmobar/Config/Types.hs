@@ -89,11 +89,13 @@ data Config =
 
 data XPosition = Top
                | TopH Int
+               | TopHM Int Int Int Int -- left right top height
                | TopW Align Int
                | TopSize Align Int Int
                | TopP Int Int
                | Bottom
                | BottomH Int
+               | BottomHM Int Int Int Int -- left right bottom height
                | BottomP Int Int
                | BottomW Align Int
                | BottomSize Align Int Int
