@@ -86,12 +86,14 @@ setPosition c p rs ht =
     T.Top -> X.Rectangle rx ry rw h
     T.TopP l r -> X.Rectangle (rx + fi l) ry (rw - fi l - fi r) h
     T.TopH ch -> X.Rectangle rx ry rw (mh ch)
-    T.TopHM l r t ch -> X.Rectangle (rx + fi l) (ry + fi t) (rw - fi l - fi r) (mh ch)
+    T.TopHM ch l r t _ ->
+      X.Rectangle (rx + fi l) (ry + fi t) (rw - fi l - fi r) (mh ch)
     T.TopW a i -> X.Rectangle (ax a i) ry (nw i) h
     T.TopSize a i ch -> X.Rectangle (ax a i) ry (nw i) (mh ch)
     T.Bottom -> X.Rectangle rx ny rw h
     T.BottomH ch -> X.Rectangle rx (ny' ch) rw (mh ch)
-    T.BottomHM l r b ch -> X.Rectangle (rx + fi l) (ry + fi rh - fi b - fi (mh ch)) (rw - fi l - fi r) (mh ch)
+    T.BottomHM ch l r _ b ->
+      X.Rectangle (rx + fi l) (ry + fi rh - fi b - fi (mh ch)) (rw - fi l - fi r) (mh ch)
     T.BottomW a i -> X.Rectangle (ax a i) ny (nw i) h
     T.BottomP l r -> X.Rectangle (rx + fi l) ny (rw - fi l - fi r) h
     T.BottomSize a i ch  -> X.Rectangle (ax a i) (ny' ch) (nw i) (mh ch)
@@ -162,20 +164,20 @@ getRootWindowHeight srs = maximum (map getMaxScreenYCoord srs)
 getStrutValues :: X.Rectangle -> T.XPosition -> Int -> [Int]
 getStrutValues r@(X.Rectangle x y w h) p rwh =
   case p of
-    T.OnScreen _ p'   -> getStrutValues r p' rwh
-    T.Top             -> [0, 0, st,  0, 0, 0, 0, 0, nx, nw,  0,  0]
-    T.TopH    _       -> [0, 0, st,  0, 0, 0, 0, 0, nx, nw,  0,  0]
-    T.TopHM        {} -> [0, 0, st,  0, 0, 0, 0, 0, nx, nw,  0,  0]
-    T.TopP    _ _     -> [0, 0, st,  0, 0, 0, 0, 0, nx, nw,  0,  0]
-    T.TopW    _ _     -> [0, 0, st,  0, 0, 0, 0, 0, nx, nw,  0,  0]
-    T.TopSize      {} -> [0, 0, st,  0, 0, 0, 0, 0, nx, nw,  0,  0]
-    T.Bottom          -> [0, 0,  0, sb, 0, 0, 0, 0,  0,  0, nx, nw]
-    T.BottomH _       -> [0, 0,  0, sb, 0, 0, 0, 0,  0,  0, nx, nw]
-    T.BottomHM     {} -> [0, 0,  0, sb, 0, 0, 0, 0,  0,  0, nx, nw]
-    T.BottomP _ _     -> [0, 0,  0, sb, 0, 0, 0, 0,  0,  0, nx, nw]
-    T.BottomW _ _     -> [0, 0,  0, sb, 0, 0, 0, 0,  0,  0, nx, nw]
-    T.BottomSize   {} -> [0, 0,  0, sb, 0, 0, 0, 0,  0,  0, nx, nw]
-    T.Static       {} -> getStaticStrutValues p rwh
+    T.OnScreen _ p'      -> getStrutValues r p' rwh
+    T.Top                -> [0, 0, st  , 0   , 0, 0, 0, 0, nx, nw, 0 , 0 ]
+    T.TopH    _          -> [0, 0, st  , 0   , 0, 0, 0, 0, nx, nw, 0 , 0 ]
+    T.TopHM _ _ _ _ b    -> [0, 0, st+b, 0   , 0, 0, 0, 0, nx, nw, 0 , 0 ]
+    T.TopP    _ _        -> [0, 0, st  , 0   , 0, 0, 0, 0, nx, nw, 0 , 0 ]
+    T.TopW    _ _        -> [0, 0, st  , 0   , 0, 0, 0, 0, nx, nw, 0 , 0 ]
+    T.TopSize      {}    -> [0, 0, st  , 0   , 0, 0, 0, 0, nx, nw, 0 , 0 ]
+    T.Bottom             -> [0, 0, 0   , sb  , 0, 0, 0, 0, 0 , 0 , nx, nw]
+    T.BottomH _          -> [0, 0, 0   , sb  , 0, 0, 0, 0, 0 , 0 , nx, nw]
+    T.BottomHM _ _ _ t _ -> [0, 0, 0   , sb+t, 0, 0, 0, 0, 0 , 0 , nx, nw]
+    T.BottomP _ _        -> [0, 0, 0   , sb  , 0, 0, 0, 0, 0 , 0 , nx, nw]
+    T.BottomW _ _        -> [0, 0, 0   , sb  , 0, 0, 0, 0, 0 , 0 , nx, nw]
+    T.BottomSize   {}    -> [0, 0, 0   , sb  , 0, 0, 0, 0, 0 , 0 , nx, nw]
+    T.Static       {}    -> getStaticStrutValues p rwh
   where st = fi y + fi h
         sb = rwh - fi y
         nx = fi x

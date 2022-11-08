@@ -87,20 +87,91 @@ data Config =
            , signal :: SignalChan   -- ^ Channel to send signals to xmobar
            } deriving (Read, Show)
 
-data XPosition = Top
-               | TopH Int
-               | TopHM Int Int Int Int -- left right top height
-               | TopW Align Int
-               | TopSize Align Int Int
-               | TopP Int Int
+-- | The position datatype
+data XPosition = Top            -- ^ Top of the screen, full width, auto height
+
+               | TopH           -- ^ Top of the screen, full width with
+                                --   specific height
+                  Int           -- ^ Height (in pixels)
+
+                 -- | Top of the screen, full width with
+                 --   specific height and margins
+               | TopHM
+                  Int           -- ^ Height (in pixels)
+                  Int           -- ^ Left margin (in pixels)
+                  Int           -- ^ Right margin (in pixels)
+                  Int           -- ^ Top margin (in pixels)
+                  Int           -- ^ Bottom margin (in pixels)
+
+                 -- | Top of the screen with specific width
+                 --   (as screen percentage) and alignment
+               | TopW
+                  Align         -- ^ Alignement (L|C|R)
+                  Int           -- ^ Width as screen percentage (0-100)
+
+                 -- | Top of the screen with specific width
+                 --   (as screen percentage), height and
+                 --   alignment
+               | TopSize
+                  Align         -- ^ Alignement (L|C|R)
+                  Int           -- ^ Width as screen percentage (0-100)
+                  Int           -- ^ Height (in pixels)
+
+                 -- | Top of the screen with specific left/right
+                 --   margins
+               | TopP
+                  Int           -- ^ Left margin (in pixels)
+                  Int           -- ^ Right margin (in pixels)
+
+                 -- | Bottom of the screen, full width, auto height
                | Bottom
-               | BottomH Int
-               | BottomHM Int Int Int Int -- left right bottom height
-               | BottomP Int Int
-               | BottomW Align Int
-               | BottomSize Align Int Int
-               | Static {xpos, ypos, width, height :: Int}
-               | OnScreen Int XPosition
+
+               | BottomH        -- ^ Bottom of the screen, full width, with
+                                --   specific height
+                  Int           -- ^ Height (in pixels)
+
+                 -- | Bottom of the screen with specific height
+                 --   and margins
+               | BottomHM
+                  Int           -- ^ Height (in pixels)
+                  Int           -- ^ Left margin (in pixels)
+                  Int           -- ^ Right margin (in pixels)
+                  Int           -- ^ Top margin (in pixels)
+                  Int           -- ^ Bottom margin (in pixels)
+
+                 -- | Bottom of the screen with specific
+                 --   left/right margins
+               | BottomP
+                  Int           -- ^ Left margin (in pixels)
+                  Int           -- ^ Bottom margin (in pixels)
+
+                 -- | Bottom of the screen with specific width
+                 --   (as screen percentage) and alignment
+                 --   and alignment
+               | BottomW
+                  Align         -- ^ Alignement (L|C|R)
+                  Int           -- ^ Width as screen percentage (0-100)
+
+                 -- | Bottom of the screen with specific width
+                 --   (as screen percentage), height
+                 --   and alignment
+               | BottomSize
+                  Align         -- ^ Alignement (L|C|R)
+                  Int           -- ^ Width as screen percentage (0-100)
+                  Int           -- ^ Height (in pixels)
+
+                 -- | Static position and specific size
+               | Static { xpos :: Int   -- ^ Position X (in pixels)
+                        , ypos :: Int   -- ^ Position Y (in pixels)
+                        , width :: Int  -- ^ Width (in pixels)
+                        , height :: Int -- ^ Height (in pixels)
+                        }
+
+                 -- | Along with the position characteristics
+                 --   specify the screen to display the bar
+               | OnScreen
+                  Int           -- ^ Screen id (primary is 0)
+                  XPosition     -- ^ Position
                  deriving ( Read, Show, Eq )
 
 data Align = L | R | C deriving ( Read, Show, Eq )
