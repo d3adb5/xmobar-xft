@@ -1,3 +1,7 @@
+## Version 0.46 (unreleased)
+
+- New bar position specifiers TopHM, BottomHM.
+
 ## Version 0.45 (October, 2022)
 
 - New cairo/pango font drawing backend, substituting the direct X11/Xft one.

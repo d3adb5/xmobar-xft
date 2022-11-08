@@ -192,7 +192,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
 
 *** Bar position
 
-    - =position= Top, TopH, TopP, TopW, TopSize, Bottom, BottomH,
+    - =position= Top, TopH, TopHM, TopP, TopW, TopSize, Bottom, BottomH, BottomHM,
       BottomP, BottomW, BottomSize or Static (with x, y, width and height).
 
       TopP and BottomP take 2 arguments: left padding and right padding.
@@ -219,7 +219,18 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
         position = BottomH 30
       #+end_src
 
-      to make a 30 tall bar on the bottom of the screen.
+      to make a 30 tall bar on the bottom of the screen.  The corresponding
+      variants ~TopHM~ and ~BottomHM~ allow you to specify, in addition to a
+      height, margins (in pixels) with the borders of the screen (left, right
+      top and bottom); so they take five integers as arguments.  For instance,
+      if you one a margin of 2 pixels to the left of the top bar in the above
+      example and 4 to its right and top, you could use:
+
+      #+begin_src haskell
+        position = TopHM 30 2 4 4 0
+      #+end_src
+
+      and similarly for ~BottomHM~.
 
       #+begin_src haskell
         position = BottomW C 75
