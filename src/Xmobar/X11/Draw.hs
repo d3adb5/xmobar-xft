@@ -88,7 +88,7 @@ draw segments = do
 #ifdef XRENDER
         color = C.bgColor conf
         alph = C.alpha conf
-    XRender.drawBackground disp p color alph (X11.Rectangle 0 0 w h)
+    XRender.drawBackground disp p color alph rect
 #endif
 
     CS.withXlibSurface disp p vis (fromIntegral w) (fromIntegral h) render
