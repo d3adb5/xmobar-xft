@@ -178,12 +178,12 @@ drawSegments dctx surf = do
 #ifndef XRENDER
   drawCairoBackground dctx surf
 #endif
-  (_, as, bx) <- foldM (drawSegment dctx surf dw) (0, [], []) llyts
+  (lend, as, bx) <- foldM (drawSegment dctx surf dw) (0, [], []) llyts
   let [rw, cw] = map sWidth [rlyts, clyts]
-      cstart = (dw - cw) / 2.0
-  (cend, as', bx') <- foldM (drawSegment dctx surf dw) (cstart, as, bx) clyts
-  let rstart' = dw - rw - 1
-      rstart = if cend > cstart then max rstart' (cend + 1) else rstart'
+      rstart = dw - rw - 1
+      cstart = max (lend + 1) ((dw - cw) / 2.0)
+      cmax = rstart - 1
+  (_, as', bx') <- foldM (drawSegment dctx surf cmax) (cstart, as, bx) clyts
   (_, as'', bx'') <- foldM (drawSegment dctx surf dw) (rstart, as', bx') rlyts
   drawBoxes dctx surf (reverse bx'')
   when (C.borderWidth conf > 0) (drawBorder conf dw dh surf)
