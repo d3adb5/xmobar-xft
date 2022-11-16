@@ -124,8 +124,9 @@ drawSegment dctx surface maxoff (off, acts, boxs) (segment, render, lwidth) = do
       acts' = case a of Just as -> (as, off, end):acts; _ -> acts
       bs = C.tBoxes info
       boxs' = if null bs then boxs else (off, end, bs):boxs
-  drawSegmentBackground dctx surface info off end
-  render surface off maxoff
+  when (end > off) $ do
+    drawSegmentBackground dctx surface info off end
+    render surface off maxoff
   return (off + lwidth, acts', boxs')
 
 renderOuterBorder :: C.Config -> Double -> Double -> Cairo.Render ()
