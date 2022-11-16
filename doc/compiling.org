@@ -85,7 +85,9 @@
      enters a high-CPU regime right after starting.
 
    - =with_xrender= Enables the main bar background alpha parameter.  Requires
-     the [[http://hackage.haskell.org/package/X11-xft/][X11-xft]] package.
+     the [[http://hackage.haskell.org/package/X11-xft/][X11-xft]] package.  The Xrender extension is not compatible with 10-bit
+     colour modes, i.e., setting ~DefaultDepth~ to 30 in your Xorg
+     configuration.  See discussion in [[https://codeberg.org/xmobar/xmobar/issues/651][issue 651]] for details.
 
    - =with_xpm= Support for xpm image file format. This will allow loading
      .xpm files in =<icon>=. Requires the [[http://cgit.freedesktop.org/xorg/lib/libXpm][libXpm]] C library.
