@@ -164,17 +164,17 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
   Alshiekh, Alex Ameen, Axel Angel, Dhananjay Balan, Claudio Bley, Dragos
   Boca, Ben Boeckel, Ivan Brennan, Duncan Burke, Roman Cheplyaka, Patrick
   Chilton, Antoine Eiche, Nathaniel Wesley Filardo, Guy Gastineau, John
-  Goerzen, Patrick Günther, Reto Hablützel, Juraj Hercek, Tomáš Janoušek, Ada
-  Joule, Spencer Janssen, Roman Joost, Pavel Kalugin, Jochen Keil, Sam Kirby,
-  Lennart Kolmodin, Krzysztof Kosciuszkiewicz, Dmitry Kurochkin, Todd Lunter,
-  Vanessa McHale, Robert J. Macomber, Dmitry Malikov, David McLean, Joan
-  Milev, Marcin Mikołajczyk, Dino Morelli, Tony Morris, Eric Mrak, Thiago
-  Negri, Edward O'Callaghan, Svein Ove, Martin Perner, Jens Petersen,
-  Alexander Polakov, Sibi Prabakaran, Pavan Rikhi, Petr Rockai, Andrew
-  Emmanuel Rosa, Sackville-West, Amir Saeid, Markus Scherer, Daniel Schüssler,
-  Olivier Schneider, Alexander Shabalin, Valentin Shirokov, Peter Simons,
-  Alexander Solovyov, Will Song, John Soo, John Soros, Felix Springer, Travis
-  Staton, Artem Tarasov, Samuli Thomasson, Edward Tjörnhammar, Sergei
+  Goerzen, Jonathan Grochowski, Patrick Günther, Reto Hablützel, Juraj Hercek,
+  Tomáš Janoušek, Ada Joule, Spencer Janssen, Roman Joost, Pavel Kalugin,
+  Jochen Keil, Sam Kirby, Lennart Kolmodin, Krzysztof Kosciuszkiewicz, Dmitry
+  Kurochkin, Todd Lunter, Vanessa McHale, Robert J. Macomber, Dmitry Malikov,
+  David McLean, Joan Milev, Marcin Mikołajczyk, Dino Morelli, Tony Morris,
+  Eric Mrak, Thiago Negri, Edward O'Callaghan, Svein Ove, Martin Perner, Jens
+  Petersen, Alexander Polakov, Sibi Prabakaran, Pavan Rikhi, Petr Rockai,
+  Andrew Emmanuel Rosa, Sackville-West, Amir Saeid, Markus Scherer, Daniel
+  Schüssler, Olivier Schneider, Alexander Shabalin, Valentin Shirokov, Peter
+  Simons, Alexander Solovyov, Will Song, John Soo, John Soros, Felix Springer,
+  Travis Staton, Artem Tarasov, Samuli Thomasson, Edward Tjörnhammar, Sergei
   Trofimovich, Thomas Tuegel, John Tyree, Jan Vornberger, Anton Vorontsov,
   Daniel Wagner, Zev Weiss, Phil Xiaojun Hu, Nikolay Yakimov, Edward Z. Yang,
   Leo Zhang, Norbert Zeh, and Michał Zielonka.

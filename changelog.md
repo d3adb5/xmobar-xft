@@ -1,6 +1,7 @@
 ## Version 0.46 (unreleased)
 
 - New bar position specifiers TopHM, BottomHM.
+- New configuration option, `dpi`, to set the font scaling factor.
 
 ## Version 0.45 (October, 2022)
 
