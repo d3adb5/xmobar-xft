@@ -140,7 +140,7 @@ showWithUnits d n x
 padString :: Int -> Int -> String -> Bool -> String -> String -> String
 padString mnw mxw pad pr ellipsis s =
   let len = length s
-      rmin = if mnw < 0 then 0 else mnw
+      rmin = max mnw 0
       rmax = if mxw <= 0 then max len rmin else mxw
       (rmn, rmx) = if rmin <= rmax then (rmin, rmax) else (rmax, rmin)
       rlen = min (max rmn len) rmx

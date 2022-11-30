@@ -36,7 +36,7 @@ instance Exec Kraken where
            cb (display g)
            loop mv g
 
-      loop mvar (Map.fromList $ zip ps (repeat 0.0))
+      loop mvar (Map.fromList $ map (, 0.0) ps)
 
     where
       display :: Map.Map String Double -> String
