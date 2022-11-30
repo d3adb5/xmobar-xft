@@ -72,7 +72,7 @@ parseConfig defaultConfig =
               <|?> pAllDesktops <|?> pOverrideRedirect <|?> pPickBroadest
               <|?> pLowerOnStart <|?> pPersistent <|?> pIconRoot
               <|?> pCommands <|?> pSepChar <|?> pAlignSep <|?> pTemplate
-              <|?> pVerbose <|?> pSignal
+              <|?> pVerbose <|?> pSignal <|?> pDpi
 
       fields    = [ "font", "additionalFonts", "bgColor", "fgColor"
                   , "wmClass", "wmName", "sepChar"
@@ -81,7 +81,7 @@ parseConfig defaultConfig =
                   , "allDesktops", "overrideRedirect", "pickBroadest"
                   , "hideOnStart", "lowerOnStart", "persistent", "iconRoot"
                   , "alpha", "commands", "verbose", "signal", "textOutput"
-                  , "textOutputFormat"
+                  , "textOutputFormat", "dpi"
                   ]
 
       pTextOutput = readField textOutput "textOutput"
@@ -112,6 +112,7 @@ parseConfig defaultConfig =
       pIconRoot = readField iconRoot "iconRoot"
       pAlpha = readField alpha "alpha"
       pVerbose = readField verbose "verbose"
+      pDpi = readField dpi "dpi"
 
       pSignal = field signal "signal" $
         fail "signal is meant for use with Xmobar as a library.\n It is not meant for use in the configuration file."

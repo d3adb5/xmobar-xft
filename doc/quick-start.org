@@ -48,6 +48,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
     -x screen     --screen=screen        On which X screen number to start
     -p position   --position=position    Specify position of xmobar. Same syntax as in config file
     -T [format]   --text[=format]        Write output to stdout
+    -D dpi        --dpi=dpi              The DPI scaling factor. Default 96.0
 
      Mail bug reports and suggestions to <mail@jao.io>
   #+end_example
@@ -76,6 +77,11 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
       #+begin_src haskell
         additionalFonts = [iconFont, altIconFont]
       #+end_src
+
+    - =dpi= The DPI scaling factor, as a decimal, to use. If 0, negative, or not
+      given, the default of 96 will be used, which corresponds to an average
+      screen. A 10pt font will therefore scale to 10pt * (1/72 pt/inch) * (96
+      pixel/inch) = 13.3 pixel. This is especially useful for HiDPI displays.
 
     The global font is used by default when none of the others is specified
     using the ~<fn=n>...</fn>~ markup, with ~n~ a 1-based index in the

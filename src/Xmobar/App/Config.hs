@@ -67,6 +67,7 @@ defaultConfig =
            , signal = SignalChan Nothing
            , textOutput = False
            , textOutputFormat = Plain
+           , dpi = 96.0
            }
 
 -- | Return the path to the xmobar data directory.  This directory is

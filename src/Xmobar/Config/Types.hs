@@ -85,6 +85,7 @@ data Config =
            , template :: String     -- ^ The output template
            , verbose :: Bool        -- ^ Emit additional debug messages
            , signal :: SignalChan   -- ^ Channel to send signals to xmobar
+           , dpi :: Double          -- ^ DPI scaling factor for fonts
            } deriving (Read, Show)
 
 -- | The position datatype

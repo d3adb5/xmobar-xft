@@ -172,6 +172,7 @@ drawSegments dctx surf = do
       conf = T.dcConfig dctx
       sWidth = foldl (\a (_,_,w) -> a + w) 0
   ctx <- Pango.cairoCreateContext Nothing
+  Pango.cairoContextSetResolution ctx $ C.dpi conf
   llyts <- mapM (withRenderinfo ctx dctx) left
   rlyts <- mapM (withRenderinfo ctx dctx) right
   clyts <- mapM (withRenderinfo ctx dctx) center

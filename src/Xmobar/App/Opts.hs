@@ -52,6 +52,7 @@ data Opts = Help
           | Position String
           | WmClass String
           | WmName String
+          | Dpi String
        deriving (Show, Eq)
 
 options :: [OptDescr Opts]
@@ -95,6 +96,8 @@ options =
       "On which X screen number to start"
     , Option "p" ["position"] (ReqArg Position "position")
       "Specify position of xmobar. Same syntax as in config file"
+    , Option "D" ["dpi"] (ReqArg Dpi "dpi")
+      "The DPI scaling factor. Default 96.0"
     ]
 
 getOpts :: [String] -> IO ([Opts], [String])
@@ -161,6 +164,7 @@ doOpts conf (o:oo) =
                       Right x -> doOpts' (conf {commands = commands conf ++ x})
                       Left e -> putStr (e ++ usage) >> exitWith (ExitFailure 1)
     Position s -> readPosition s
+    Dpi d -> doOpts' (conf {dpi = read d})
   where readCom c str =
           case readStr str of
             [x] -> Right x
