@@ -181,7 +181,7 @@ drawSegments dctx surf = do
 #endif
   (lend, as, bx) <- foldM (drawSegment dctx surf dw) (0, [], []) llyts
   let [rw, cw] = map sWidth [rlyts, clyts]
-      rstart = dw - rw - 1
+      rstart = max (lend + 1) (dw - rw - 1)
       cstart = max (lend + 1) ((dw - cw) / 2.0)
       cmax = rstart - 1
   (_, as', bx') <- foldM (drawSegment dctx surf cmax) (cstart, as, bx) clyts
