@@ -92,11 +92,14 @@ withRenderinfo ctx dctx seg@(C.Text _, inf, idx, a) = do
 withRenderinfo _ _ seg@(C.Hspace w, _, _, _) =
   return (seg, \_ _ _ -> return (), fromIntegral w)
 
-withRenderinfo _ dctx seg@(C.Icon p, _, _, _) = do
+withRenderinfo _ dctx seg@(C.Icon p, info, _, _) = do
   let (wd, _) = T.dcIconLookup dctx p
       ioff = C.iconOffset (T.dcConfig dctx)
       vpos = T.dcHeight dctx / 2  + fromIntegral ioff
-      render _ off mx = when (off + wd <= mx) $ T.dcIconDrawer dctx off vpos p
+      conf = T.dcConfig dctx
+      (fg, bg) = ConfigParse.colorComponents conf (C.tColorsString info)
+      render _ off mx = when (off + wd <= mx) $
+        T.dcIconDrawer dctx off vpos p fg bg
   return (seg, render, wd)
 
 drawBox :: T.DrawContext -> Surface -> Double -> Double -> C.Box -> IO ()

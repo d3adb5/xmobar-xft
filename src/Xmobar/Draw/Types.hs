@@ -25,7 +25,7 @@ type ActionPos = ([Action], Position, Position)
 type Actions = [ActionPos]
 
 type IconLookup = String -> (Double, Double)
-type IconDrawer = Double -> Double -> String -> IO ()
+type IconDrawer = Double -> Double -> String -> String -> String -> IO ()
 
 data DrawContext = DC { dcIconDrawer :: IconDrawer
                       , dcIconLookup :: IconLookup

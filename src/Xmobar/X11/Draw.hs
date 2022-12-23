@@ -37,11 +37,8 @@ import qualified Xmobar.X11.XRender as XRender
 #endif
 
 drawXBitmap :: T.XConf -> X11.GC -> X11.Pixmap -> D.IconDrawer
-drawXBitmap xconf gc p h v path = do
+drawXBitmap xconf gc p h v path fc bc = do
   let disp = T.display xconf
-      conf = T.config xconf
-      fc = C.fgColor conf
-      bc = C.bgColor conf
   case M.lookup path (T.iconCache xconf) of
     Just bm -> liftIO $ B.drawBitmap disp p gc fc bc (round h) (round v) bm
     Nothing -> return ()
