@@ -185,8 +185,10 @@ drawSegments dctx surf = do
   (lend, as, bx) <- foldM (drawSegment dctx surf dw) (0, [], []) llyts
   let [rw, cw] = map sWidth [rlyts, clyts]
       rstart = max lend (dw - rw)
-      cstart = max lend ((dw - cw) / 2.0)
-  (_, as', bx') <- foldM (drawSegment dctx surf rstart) (cstart, as, bx) clyts
+      cstart = if lend > 1 then max lend ((dw - cw) / 2.0) else lend
+  (_, as', bx') <- if cw > 0
+                   then foldM (drawSegment dctx surf rstart) (cstart, as, bx) clyts
+                   else return (0, as, bx)
   (_, as'', bx'') <- foldM (drawSegment dctx surf dw) (rstart, as', bx') rlyts
   drawBoxes dctx surf (reverse bx'')
   when (C.borderWidth conf > 0) (drawBorder conf dw dh surf)
