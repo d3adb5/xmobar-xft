@@ -6,7 +6,7 @@ configuration. For an example of a configuration file using the plain
 configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you can have a look at
 [[../etc/xmobar.hs][etc/xmobar.hs]] for an example of how to write your own xmobar using Haskell.
 
-* Command Line Options
+* Command line options
 
   xmobar can be either configured with a configuration file or with
   command line options. In the second case, the command line options will
@@ -53,7 +53,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
      Mail bug reports and suggestions to <mail@jao.io>
   #+end_example
 
-* Configuration Options
+* Configuration options
   :PROPERTIES:
   :CUSTOM_ID: configuration-options
   :END:
@@ -310,12 +310,10 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
       [[#commands-list][The commands list]] section below for more.
 
     - =sepChar= The character to be used for indicating commands in the
-      output template (default '%').
+      output template (defaults to '%').
 
-    - =alignSep= a 2 character string for aligning text in the output
-      template. The text before the first character will be align to left,
-      the text in between the 2 characters will be centered, and the text
-      after the second character will be align to the right.
+    - =alignSep= a 2-character string for aligning text in the output
+      template. See [[id:bar-sections][this section]] for details.
 
     - =template= The output template: a string telling xmobar how to display the
       outputs of all the =commands= above.  See [[#output-template][the next section]] for a full
@@ -398,7 +396,8 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
       opacity, with two additional hex digits (e.g. #FF00000aa).
 
     - =<fn=1>string</fn>= will print =string= with the first font from
-      =additionalFonts=. The index =0= corresponds to the standard font.
+      =additionalFonts=. The index =0= corresponds to the standard font.  The
+      standard font is also used if the index is out of bounds.
 
     - =<hspace=X/>= will insert a blank horizontal space of =X= pixels.
       For example, to add a blank horizontal space of 123 pixels,
@@ -439,6 +438,36 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
 
       See the subsections below for more information on ~<box/>~,
       ~<icon/>~ and ~<action/>~.
+
+    - The special characters =}= and ={= are used to delimit up to three sections
+      in the bar that are drawn and aligned independently. See [[id:bar-sections][this section]]
+      for more.
+
+*** Bar sections
+    :PROPERTIES:
+    :CUSTOM_ID: bar-sections
+    :END:
+
+     You can use the special characters =}= and ={= are used to delimit up to three
+     sections in the bar, which are aligned and, if needed, overlapped
+     according to these rules:
+
+     - If the template has the form =L}M{R=, with L, R, M arbitrary specs, the
+       monitors in =L= are drawn first, aligned to the left, then =R=, aligned to
+       the right, and finally =M= is drawn centered in the bar. =R= is trimmed to
+       the space left by =L=, and =M= is trimmed to the space left by =L= and =R=.
+
+     - If the template has the form =L}{R=, =L= is drawn aligned to the left first
+       and then =R=, aligned to the right and trimmed if needed to fit in the
+       space left by =L=.
+
+     - If the template has the form =}L{R=, =R= is drawn first, aligned to the
+       right, and then =L=, aligned to the left and trimmed to the space left by
+       =R=.
+
+     When needed, sections are always trimmed on the right.  The section
+     delimiters can be changed using the configuration option =alignSep,= a
+     two-character string.
 
 *** Boxes around text
 
@@ -500,7 +529,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
 
     Icons are ignored when xmobar is run in text output mode.
 
-*** Using the mouse: Action directives
+*** Mouse actions
 
     It's also possible to use action directives of the form:
 
@@ -600,7 +629,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
 
    - After receiving ~SIGUSR2~ xmobar repositions itself on the current
      screen.
-* The DBus Interface
+* The DBus interface
 
   When compiled with the optional =with_dbus= flag, xmobar can be controlled
   over dbus. All signals defined in [[../src/Xmobar/System/Signal.hs][src/Signal.hs]] as =data SignalType= can now
