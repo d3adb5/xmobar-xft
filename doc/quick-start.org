@@ -313,7 +313,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
       output template (defaults to '%').
 
     - =alignSep= a 2-character string for aligning text in the output
-      template. See [[id:bar-sections][this section]] for details.
+      template. See [[#bar-sections][this section]] for details.
 
     - =template= The output template: a string telling xmobar how to display the
       outputs of all the =commands= above.  See [[#output-template][the next section]] for a full
@@ -440,7 +440,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
       ~<icon/>~ and ~<action/>~.
 
     - The special characters =}= and ={= are used to delimit up to three sections
-      in the bar that are drawn and aligned independently. See [[id:bar-sections][this section]]
+      in the bar that are drawn and aligned independently. See [[#bar-sections][this section]]
       for more.
 
 *** Bar sections

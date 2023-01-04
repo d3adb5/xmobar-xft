@@ -117,7 +117,7 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
    or =~/.xmobarrc=.
 
    All the available command line switches and configuration parameters are
-   described in [[file:quick-start.org][the quick start guide]] and [[file:doc/plugins.org][the plugins index]].
+   described in [[file:doc/quick-start.org][the quick start guide]] and [[file:doc/plugins.org][the plugins index]].
 
 ** Writing your own xmobar in Haskell
 
