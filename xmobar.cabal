@@ -210,7 +210,6 @@ library
                   process,
                   regex-compat,
                   stm >= 2.3 && < 2.6,
-                  text < 2,
                   time,
                   transformers,
                   unix,

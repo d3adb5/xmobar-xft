@@ -1,6 +1,6 @@
 matrix:
   GHC_VERSION:
-    - 9
+    - 9.2
     - 8
 
 pipeline:
