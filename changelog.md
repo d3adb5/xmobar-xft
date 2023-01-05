@@ -1,7 +1,9 @@
-## Version 0.46 (unreleased)
+## Version 0.46 (January, 2023)
 
 - New bar position specifiers TopHM, BottomHM.
 - New configuration option, `dpi`, to set the font scaling factor.
+- Fixes and extensions for section aligment behaviour (#650, #655).
+- Fix: honour fc/bg specs for icons (#663).
 
 ## Version 0.45 (October, 2022)
 

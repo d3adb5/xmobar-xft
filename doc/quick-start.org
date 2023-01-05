@@ -307,7 +307,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
     - =commands= The list of monitors and plugins to run, together with their
       individual configurations. The [[./plugins.org][plugin documentation]] details all the
       available monitors, and you can also create new ones using Haskell.  See
-      [[#commands-list][The commands list]] section below for more.
+      the [[#commands-list][commands list section]] below for more.
 
     - =sepChar= The character to be used for indicating commands in the
       output template (defaults to '%').
