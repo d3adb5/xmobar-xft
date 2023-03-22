@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  DBus
@@ -17,9 +18,10 @@ module Xmobar.System.DBus (runIPC) where
 import DBus
 import DBus.Client hiding (interfaceName)
 import qualified DBus.Client as DC
+import DBus.Socket
 import Data.Maybe (isNothing)
 import Control.Concurrent.STM
-import Control.Exception (handle)
+import Control.Exception
 import System.IO (stderr, hPutStrLn)
 import Control.Monad.IO.Class (liftIO)
 
@@ -35,10 +37,10 @@ interfaceName :: InterfaceName
 interfaceName = interfaceName_ "org.Xmobar.Control"
 
 runIPC :: TMVar SignalType -> IO ()
-runIPC mvst = handle printException exportConnection
+runIPC mvst = exportConnection `catches` [
+      Handler(\ (ex :: ClientError) -> hPutStrLn stderr (clientErrorMessage ex)),
+      Handler(\ (ex :: SocketError) -> hPutStrLn stderr (socketErrorMessage ex))]
     where
-    printException :: ClientError -> IO ()
-    printException = hPutStrLn stderr . clientErrorMessage
     exportConnection = do
         client <- connectSession
         requestName client busName [ nameDoNotQueue ]
