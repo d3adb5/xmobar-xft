@@ -146,6 +146,15 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
    to use Source Code Pro Semi-Bold 10 when possible, and fall back to Noto
    Color Emoji Regular 12 for characters that the former cannot display.
 
+**** X11 Bitmap fonts
+
+     If you want to use traditional, non-aliased X11 fonts, you can do so via
+     the [[https://www.cl.cam.ac.uk/~mgk25/ucs-fonts.html][Unicode fonts and tools for X11]] package, which provides bitmap
+     versions of them, with a specification of the stytle ~"Fixed 8"~ for what
+     in the old days would have been something like
+     ~-Misc-Fixed-Medium-R-Normal--13-120-75-75-C-70-ISO10646-1~.  See also
+     discussion in [[https://codeberg.org/xmobar/xmobar/issues/658][issue #658]].
+
 *** Colors
 
     - =bgColor= Background color.
