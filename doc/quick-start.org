@@ -464,7 +464,8 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
      - If the template has the form =L}M{R=, with L, R, M arbitrary specs, the
        monitors in =L= are drawn first, aligned to the left, then =R=, aligned to
        the right, and finally =M= is drawn centered in the bar. =R= is trimmed to
-       the space left by =L=, and =M= is trimmed to the space left by =L= and =R=.
+       the space left by =L=, and =M= is trimmed to the space left by =L= and =R=.  As
+       a particular case, =}M{= will draw a single segment centered in the bar.
 
      - If the template has the form =L}{R=, =L= is drawn aligned to the left first
        and then =R=, aligned to the right and trimmed if needed to fit in the

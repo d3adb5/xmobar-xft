@@ -2,7 +2,7 @@
 ------------------------------------------------------------------------------
 -- |
 -- Module: Xmobar.X11.Cairo
--- Copyright: (c) 2022 Jose Antonio Ortega Ruiz
+-- Copyright: (c) 2022, 2023 Jose Antonio Ortega Ruiz
 -- License: BSD3-style (see LICENSE)
 --
 -- Maintainer: jao@gnu.org
@@ -185,7 +185,7 @@ drawSegments dctx surf = do
   (lend, as, bx) <- foldM (drawSegment dctx surf dw) (0, [], []) llyts
   let [rw, cw] = map sWidth [rlyts, clyts]
       rstart = max lend (dw - rw)
-      cstart = if lend > 1 then max lend ((dw - cw) / 2.0) else lend
+      cstart = if lend > 1 || rw == 0 then max lend ((dw - cw) / 2.0) else lend
   (_, as', bx') <- if cw > 0
                    then foldM (drawSegment dctx surf rstart) (cstart, as, bx) clyts
                    else return (0, as, bx)
