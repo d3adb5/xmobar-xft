@@ -75,6 +75,11 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
        emerge --ask xmobar
      #+end_src
 
+   - FreeBSD
+     #+begin_src shell
+       pkg install hs-xmobar
+     #+end_src
+
 ** Using cabal or stack
 
    Xmobar is available from [[http://hackage.haskell.org/package/xmobar/][Hackage]], and you can compile and install it using
