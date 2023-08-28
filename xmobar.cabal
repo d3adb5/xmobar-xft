@@ -255,7 +255,7 @@ library
                       cereal >= 0.5.8.1
        cpp-options: -DUSE_NL80211
 
-    if flag(with_mpd) || flag(all_extensions)
+    if (flag(with_mpd) || flag(all_extensions)) && impl(ghc < 9.4)
        build-depends: libmpd >= 0.9.2.0
        other-modules: Xmobar.Plugins.Monitors.MPD
        cpp-options: -DLIBMPD
