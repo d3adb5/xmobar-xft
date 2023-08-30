@@ -4,7 +4,7 @@ matrix:
     - 9.2
     - 8
 
-pipeline:
+steps:
   test:
     image: haskell:${GHC_VERSION}
     commands:
