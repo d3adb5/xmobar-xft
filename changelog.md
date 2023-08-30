@@ -1,3 +1,10 @@
+## Version 0.47 (August, 2023)
+
+- Fix: center middle section for templates of the for }M{
+- Documentation fixes and improvements
+- Better error handling in network connections
+- Dependency fixes (libmpd excluded for GHC > 9.2)
+
 ## Version 0.46 (January, 2023)
 
 - New bar position specifiers TopHM, BottomHM.

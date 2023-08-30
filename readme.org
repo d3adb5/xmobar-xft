@@ -195,6 +195,6 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
   This software is released under a BSD-style license. See [[https://codeberg.org/xmobar/xmobar/src/branch/master/license][license]] for more
   details.
 
-  Copyright © 2010-2022 Jose Antonio Ortega Ruiz
+  Copyright © 2010-2023 Jose Antonio Ortega Ruiz
 
   Copyright © 2007-2010 Andrea Rossato
