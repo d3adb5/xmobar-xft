@@ -1,3 +1,8 @@
+## Version 0.47.1 (September, 2)
+
+- Allow compilation with libmpd even with GHC > 9.4, by requesting it
+  explicitly with `with_mpd`.  See #667 for further details.
+
 ## Version 0.47 (August, 2023)
 
 - Fix: center middle section for templates of the for }M{

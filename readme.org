@@ -31,7 +31,14 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
 
 * Breaking news
 
-  - Starting with version 0.45 we use cairo/pango as our drawing engine
+  - Starting with version 0.47.1, we are excluding MPD from the extensions
+    included with ~all_extensions~ when GHC version is 9.4 or greater, because
+    that seems to break cabal compilation.  However, it's been reported that
+    in some installations compilation with ~libmpd~ works fine: just add
+    explicitly the ~with_mpd~ flag to include MPD and check for yourself.
+    Compilation with stack has also been reported to work.  Please see the
+    comments in issue #679 for details.
+  - Starting with version 0.45, we use cairo/pango as our drawing engine
     (instead of plain X11/Xft).  From a user's point of view, that change
     should be mostly transparent, except for the facts that it's allowed
     fixing quite a few bugs and that your /font names/ in your configuration, if
