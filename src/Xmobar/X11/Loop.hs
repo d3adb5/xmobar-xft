@@ -3,7 +3,7 @@
 ------------------------------------------------------------------------------
 -- |
 -- Module: Xmobar.App.X11EventLoop
--- Copyright: (c) 2018, 2020, 2022 Jose Antonio Ortega Ruiz
+-- Copyright: (c) 2018, 2020, 2022, 2023 Jose Antonio Ortega Ruiz
 -- License: BSD3-style (see LICENSE)
 --
 -- Maintainer: jao@gnu.org
@@ -22,6 +22,7 @@ import Prelude hiding (lookup)
 
 import Control.Concurrent as Concurrent
 import Control.Concurrent.STM as STM
+import Control.Monad as MR
 import Control.Monad.Reader as MR
 
 import Data.Bits (Bits((.|.)))

@@ -1,3 +1,7 @@
+## Version 0.47.2 (November, 2023)
+
+- Compatibility with GHC 9.6
+
 ## Version 0.47.1 (September, 2023)
 
 - Allow compilation with libmpd even with GHC > 9.4, by requesting it
