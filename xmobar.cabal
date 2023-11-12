@@ -202,7 +202,7 @@ library
                   directory,
                   extensible-exceptions == 0.1.*,
                   filepath,
-                  mtl >= 2.1 && < 2.3,
+                  mtl >= 2.1 && < 2.4,
                   old-locale,
                   pango >= 0.13,
                   parsec == 3.1.*,
