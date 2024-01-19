@@ -4,7 +4,7 @@ Xmobar can either be configured using the configuration language, or [[https://c
 Haskell library]] (similar to xmonad) and compiled with your specific
 configuration. For an example of a configuration file using the plain
 configuration language, see [[https://codeberg.org/xmobar/xmobar/src/branch/master/etc/xmobar.config][etc/xmobar.config]], and you can have a look at
-[[https://codeberg.org/xmobar/xmobar/src/branch/master/xmobar.hs][etc/xmobar.hs]] for an example of how to write your own xmobar using Haskell.
+[[https://codeberg.org/xmobar/xmobar/src/branch/master/etc/xmobar.hs][etc/xmobar.hs]] for an example of how to write your own xmobar using Haskell.
 
 * Command line options
 

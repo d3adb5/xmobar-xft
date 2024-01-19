@@ -75,8 +75,8 @@
   =run= can be used for simpler plugins. If you define only =run= the plugin
   will be run every second. To overwrite this default you just need to
   implement =rate=, which must return the number of tenth of seconds between
-  every successive runs. See [[../etc/xmobar.hs][etc/xmobar.hs]] for an example of a plugin
-  that runs just once, and [[../src/Xmobar/Plugins/Date.hs][src/Xmobar/Plugins/Date.hs]] for one that
+  every successive runs. See [[https://codeberg.org/xmobar/xmobar/src/branch/master/etc/xmobar.hs][etc/xmobar.hs]] for an example of a plugin
+  that runs just once, and [[https://codeberg.org/xmobar/xmobar/src/branch/master/src/Xmobar/Plugins/Date.hs][src/Xmobar/Plugins/Date.hs]] for one that
   implements =rate=.
 
   Notice that Date could be implemented as:
@@ -107,14 +107,14 @@
 
   If your plugin only implements =alias= and =start=, then it is advisable to
   put it into the =Xmobar/Plugins/Monitors= directory and use one of the many
-  =run*= functions in [[../src/Xmobar/Plugins/Monitors/Common/Run.hs][Xmobar.Plugins.Monitors.Run]] in order to define
-  =start=. The =Exec= instance should then live in [[../src/Xmobar/Plugins/Monitors.hs][Xmobar.Plugins.Monitors]].
+  =run*= functions in [[https://codeberg.org/xmobar/xmobar/src/branch/master/src/Xmobar/Plugins/Monitors/Common/Run.hs][Xmobar.Plugins.Monitors.Run]] in order to define
+  =start=. The =Exec= instance should then live in [[https://codeberg.org/xmobar/xmobar/src/branch/master/src/Xmobar/Plugins/Monitors.hs][Xmobar.Plugins.Monitors]].
 
 * Using a plugin
 
   To use your new plugin, you just need to use a pure Haskell configuration
   for xmobar (as explained [[#xmobar-in-haskell][above]]) and load your definitions in your =xmobar.hs=
-  file. You can see an example in [[../etc/xmobar.hs][etc/xmobar.hs]] showing you how to write
+  file. You can see an example in [[https://codeberg.org/xmobar/xmobar/src/branch/master/etc/xmobar.hs][etc/xmobar.hs]] showing you how to write
   a Haskell configuration that uses a new plugin, all in one file.
 
   When xmobar runs with the full path to that Haskell file as its argument
