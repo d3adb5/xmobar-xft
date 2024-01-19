@@ -16,11 +16,11 @@
   to a certain monitor.
 
   All Monitors accept a common set of arguments, described below in
-  [[Default Monitor Arguments]]. Some monitors also accept additional
+  [[#default-arguments][Default Monitor Arguments]]. Some monitors also accept additional
   options that are specific to them. When specifying the list of
   arguments in your configuration, the common options come first,
   followed by =--=, followed by any monitor-specific options. For
-  example, the following [[=Battery Args RefreshRate=][Battery]] configuration first sets the global
+  example, the following [[#batteryp-dirs-args-refreshrate][Battery]] configuration first sets the global
   =template= and =Low= arguments and then specifies the battery-specific
   =off= option.
 
@@ -60,6 +60,9 @@
    brightness value.
 
 ** Default monitor arguments
+   :PROPERTIES:
+   :CUSTOM_ID: default-arguments
+   :END:
 
    These are the options available for all monitors:
 
@@ -889,7 +892,7 @@
 
 *** =Alsa Mixer Element Args=
 
-    Like [[=Volume Mixer Element Args RefreshRate=][Volume]] but with the following differences:
+    Like [[#volume][Volume]] but with the following differences:
 
     - Uses event-based refreshing via =alsactl monitor= instead of polling,
       so it will refresh instantly when there's a volume change, and won't
@@ -1355,6 +1358,9 @@
       (re)start xmobar outside xmonad.
 
 *** =UnsafeXMonadLog=
+   :PROPERTIES:
+   :CUSTOM_ID: UnsafeXMonadLog
+   :END:
 
     - Aliases to UnsafeXMonadLog
     - Displays any text received by xmobar on the =_XMONAD_LOG= atom.
@@ -1385,7 +1391,7 @@
 
     - Aliases to =PropName=
     - Reads the X property named by =PropName= (a string) and displays its
-      value. The [[../etc/xmonadpropwrite.hs][etc/xmonadpropwrite.hs script]] in xmobar's distribution can be
+      value. The [[../src/branch/master/etc/xmonadpropwrite.hs][etc/xmonadpropwrite.hs script]] in xmobar's distribution can be
       used to set the given property from the output of any other program or
       script.
 
@@ -1421,7 +1427,7 @@
 
     - Aliases to UnsafeStdinReader
     - Displays any text received by xmobar on its standard input.
-    - Similar to [[=UnsafeXMonadLog=][UnsafeXMonadLog]], in the sense that it does not strip any
+    - Similar to [[#UnsafeXMonadLog][UnsafeXMonadLog]], in the sense that it does not strip any
       actions from the received text, only using =stdin= and not a property
       atom of the root window. Please be equally carefully when using this
       as when using =UnsafeXMonadLog=!
@@ -1480,7 +1486,7 @@
       =/tmp/xmobar_status= will reveal xmonad for 1.5 seconds and
       temporarily overwrite the window titles.
 
-    - Take a look at [[../etc/status.sh][etc/status.sh]]
+    - Take a look at [[../src/branch/master/etc/status.sh][etc/status.sh]]
 
     - Expands environment variables for the pipe path
 
