@@ -90,7 +90,7 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
 ** Using cabal or stack
 
    Xmobar is available from [[http://hackage.haskell.org/package/xmobar/][Hackage]], and you can compile and install it using
-   =cabal-install=, making sure the [[doc/compiling.org#c-libraries][required C libraries]] are in place. For a
+   =cabal-install=, making sure the [[src/branch/master/doc/compiling.org#c-libraries][required C libraries]] are in place. For a
    full build with all available extensions:
 
    #+begin_src shell
