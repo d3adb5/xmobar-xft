@@ -817,6 +817,9 @@
 
 ** Volume monitors
 *** =Volume Mixer Element Args RefreshRate=
+   :PROPERTIES:
+   :CUSTOM_ID: volume
+   :END:
 
     - Aliases to the mixer name and element name separated by a
       colon. Thus, =Volume "default" "Master" [] 10= can be used as
@@ -1391,7 +1394,7 @@
 
     - Aliases to =PropName=
     - Reads the X property named by =PropName= (a string) and displays its
-      value. The [[../src/branch/master/etc/xmonadpropwrite.hs][etc/xmonadpropwrite.hs script]] in xmobar's distribution can be
+      value. The [[https://codeberg.org/xmobar/xmobar/src/branch/master/etc/xmonadpropwrite.hs][etc/xmonadpropwrite.hs script]] in xmobar's distribution can be
       used to set the given property from the output of any other program or
       script.
 
@@ -1486,7 +1489,7 @@
       =/tmp/xmobar_status= will reveal xmonad for 1.5 seconds and
       temporarily overwrite the window titles.
 
-    - Take a look at [[../src/branch/master/etc/status.sh][etc/status.sh]]
+    - Take a look at [[https://codeberg.org/xmobar/xmobar/src/branch/master/etc/status.sh][etc/status.sh]]
 
     - Expands environment variables for the pipe path
 
