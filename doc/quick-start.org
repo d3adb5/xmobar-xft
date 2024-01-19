@@ -1,10 +1,10 @@
 #+title: Quick start: using xmobar
 
-Xmobar can either be configured using the configuration language, or [[file:using-haskell.org][used as a
+Xmobar can either be configured using the configuration language, or [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/using-haskell.org][used as a
 Haskell library]] (similar to xmonad) and compiled with your specific
 configuration. For an example of a configuration file using the plain
-configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you can have a look at
-[[../etc/xmobar.hs][etc/xmobar.hs]] for an example of how to write your own xmobar using Haskell.
+configuration language, see [[https://codeberg.org/xmobar/xmobar/src/branch/master/etc/xmobar.config][etc/xmobar.config]], and you can have a look at
+[[https://codeberg.org/xmobar/xmobar/src/branch/master/xmobar.hs][etc/xmobar.hs]] for an example of how to write your own xmobar using Haskell.
 
 * Command line options
 
@@ -314,7 +314,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
 *** Commands and monitors
 
     - =commands= The list of monitors and plugins to run, together with their
-      individual configurations. The [[./plugins.org][plugin documentation]] details all the
+      individual configurations. The [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/plugins.org][plugin documentation]] details all the
       available monitors, and you can also create new ones using Haskell.  See
       the [[#commands-list][commands list section]] below for more.
 
@@ -381,7 +381,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
    will parse the template and search for the command to be executed
    in the =commands= configuration option. First an =alias= will be
    searched (some plugins, such as =Weather= or =Network=, have default
-   aliases, see the [[./plugins.org][plugin documentation]]).  After that, the command
+   aliases, see the [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/plugins.org][plugin documentation]]).  After that, the command
    name will be tried. If a command is found, the arguments specified
    in the =commands= list will be used.
 
@@ -585,7 +585,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
    Other options are ~Ansi~, ~Pango~, and ~Swaybar~.
 ** Showing xmobar output in Emacs tab or mode line
    Using xmobar's ANSI color text ouput, one can plug it inside Emacs, and
-   display your monitors in the mode line or the tab bar.  The [[../etc/xmobar.el][xmobar.el
+   display your monitors in the mode line or the tab bar.  The [[https://codeberg.org/xmobar/xmobar/src/branch/master/etc/xmobar.el][xmobar.el
    package]] provides a simple way of doing it.
 ** Using xmobar in wayland with swaybar or waybar
    :PROPERTIES:
@@ -629,7 +629,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
    dynamically xmobar's size and run it alongside a system tray widget such
    as trayer or stalonetray (although the idea is not limited to trays,
    really). For your convenience, there is a version of Jonas' script in
-   [[../etc/padding-icon.sh][etc/padding-icon.sh]].
+   [[https://codeberg.org/xmobar/xmobar/src/branch/master/etc/padding-icon.sh][etc/padding-icon.sh]].
 
 ** Signal handling
 
@@ -642,7 +642,7 @@ configuration language, see [[../etc/xmobar.config][etc/xmobar.config]], and you
 * The DBus interface
 
   When compiled with the optional =with_dbus= flag, xmobar can be controlled
-  over dbus. All signals defined in [[../src/Xmobar/System/Signal.hs][src/Signal.hs]] as =data SignalType= can now
+  over dbus. All signals defined in [[https://codeberg.org/xmobar/xmobar/src/branch/master/src/Xmobar/System/Signal.hs][src/Signal.hs]] as =data SignalType= can now
   be sent over dbus to xmobar.
 
   Due to current limitations of the implementation only one process of xmobar
