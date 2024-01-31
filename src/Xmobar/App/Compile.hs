@@ -168,6 +168,9 @@ recompile confDir dataDir execName force verb = liftIO $ do
 #ifdef RTSOPTS
                   ++ ["-rtsopts", "-with-rtsopts", "-V0"]
 #endif
+#ifdef SHARED_LIBRARIES
+                  ++ ["-dynamic"]
+#endif
                   ++ ["-o", bin]
        runGHC bin = runProc "ghc" (opts bin)
        runScript script bin = runProc script [bin]
