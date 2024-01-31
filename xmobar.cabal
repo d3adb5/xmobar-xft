@@ -84,6 +84,10 @@ flag with_rtsopts
   description: Use -with-rtsopts=-V0 to reduce wakeups.
   default: True
 
+flag with_shared
+  description: Use shared libraries. Required when dependencies are built as shared libraries.
+  default: False
+
 flag with_weather
   description: Enable weather plugin.
   default: True
@@ -231,6 +235,9 @@ library
 
     if flag(with_rtsopts)
        cpp-options: -DRTSOPTS
+
+    if flag(with_shared)
+       cpp-options: -DSHARED_LIBRARIES
 
     if flag(with_xrender)
        build-depends: X11-xft >= 0.2
