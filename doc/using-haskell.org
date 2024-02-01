@@ -49,6 +49,14 @@
   system-wide xmobar, it will notice that you have your own implementation
   and (re)compile and run it as needed.
 
+* Using dynamic linking
+
+  Setting the =with_shared= flag, which is off by default, enables (re)building
+  of xmobar with shared libraries. By default, =xmobar= rebuilds itself with
+  static linking, as is the common practice with Haskell programs, but some
+  distributions use dynamic linking in their packages, or you might also be so
+  inclined. If so, this is your flag.
+
 * Writing a plugin
   :PROPERTIES:
   :CUSTOM_ID: writing-a-plugin

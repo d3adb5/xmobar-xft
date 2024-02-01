@@ -1,3 +1,8 @@
+## Unreleased
+
+- New flag `with_shared` to use xmobar with dynamic linking (see PR #690)
+- Maximum base version bumped to 4.20
+
 ## Version 0.47.2 (November, 2023)
 
 - Compatibility with GHC 9.6
