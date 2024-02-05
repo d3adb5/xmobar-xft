@@ -16,7 +16,7 @@ module Xmobar.Run.Actions ( Button
                           , runAction'
                           , stripActions) where
 
-import System.Process (system)
+import System.Process (spawnCommand)
 import Control.Monad (void)
 import Text.Regex (Regex, subRegex, mkRegex, matchRegex)
 import Data.Word (Word32)
@@ -26,11 +26,11 @@ type Button = Word32
 data Action = Spawn [Button] String deriving (Eq, Read, Show)
 
 runAction :: Action -> IO ()
-runAction (Spawn _ s) = void $ system (s ++ "&")
+runAction (Spawn _ s) = void $ spawnCommand s
 
 -- | Run action with stdout redirected to stderr
 runAction' :: Action -> IO ()
-runAction' (Spawn _ s) = void $ system (s ++ " 1>&2 &")
+runAction' (Spawn _ s) = void $ spawnCommand (s ++ " 1>&2")
 
 stripActions :: String -> String
 stripActions s = case matchRegex actionRegex s of
