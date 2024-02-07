@@ -1,6 +1,7 @@
-## Unreleased
+## Version 0.47.3 (February, 2024)
 
 - New flag `with_shared` to use xmobar with dynamic linking (see PR #690)
+- Fix for actions invoked from recompiled xmobar instances (issue #688)
 - Maximum base version bumped to 4.20
 
 ## Version 0.47.2 (November, 2023)
