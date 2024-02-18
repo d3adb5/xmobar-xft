@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Plugins.Monitors.Batt.Common
--- Copyright   :  (c) 2010, 2011, 2012, 2013, 2015, 2016, 2018, 2019 Jose A Ortega
+-- Copyright   :  (c) 2010-2016, 2018, 2019, 2024 Jose A Ortega
 --                (c) 2010 Andrea Rossato, Petr Rockai
 -- License     :  BSD-style (see LICENSE)
 --
@@ -18,7 +18,7 @@ module Xmobar.Plugins.Monitors.Batt.Common (BattOpts(..)
                                            , Status(..)
                                            , maybeAlert) where
 
-import System.Process (system)
+import System.Process (spawnCommand)
 import Control.Monad (unless, void)
 import Xmobar.Plugins.Monitors.Common
 
@@ -54,4 +54,4 @@ maybeAlert opts left =
   case onLowAction opts of
     Nothing -> return ()
     Just x -> unless (isNaN left || actionThreshold opts < 100 * left)
-                $ void $ system x
+                $ void $ spawnCommand x
