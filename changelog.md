@@ -1,3 +1,7 @@
+## Version 0.47.4 (March, 2024)
+
+- Bug fixes (launching processes from self-compiled instances)
+
 ## Version 0.47.3 (February, 2024)
 
 - New flag `with_shared` to use xmobar with dynamic linking (see PR #690)
