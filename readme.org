@@ -105,7 +105,7 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
    Starting with version 0.35.1, xmobar requires at least GHC version
    8.4.x. to build. See [[https://codeberg.org/xmobar/xmobar/issues/461][this issue]] for more information.
 
-   See [[src/branch/master/doc/compiling.org#optional-features][here]] for a list of optional compilation flags that will enable some
+   See [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/compiling.org#optional-features][here]] for a list of optional compilation flags that will enable some
    optional plugins.
 
    See [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/compiling.org][compiling]] for full compilation instructions starting from source.
@@ -139,7 +139,7 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
    Haskell instead of using a configuration file.  (This is very similar to
    how [[http://xmonad.org][xmonad]] works.)  That gives you the ability of using Haskell and its
    libraries to extend xmobar to your heart's content. If you are a
-   programmer, take a look [[src/branch/master/doc/using-haskell.org][here]] to learn more.
+   programmer, take a look [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/using-haskell.org][here]] to learn more.
 
 ** Running xmobar in text mode
 
@@ -164,7 +164,7 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
     [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/using-haskell.org][using Haskell guide]].
 
   - If you want to know how to contribute to the xmobar project, check out
-    [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/contributing.org][contributing]].
+    [[https://codeberg.org/xmobar/xmobar/src/branch/master/contributing.org][contributing]].
 
 * Authors and credits
 
