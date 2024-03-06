@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 -- |
 -- Module: Xmobar.App.Opts
--- Copyright: (c) 2018, 2019, 2020, 2022, 2023 Jose Antonio Ortega Ruiz
+-- Copyright: (c) 2018, 2019, 2020, 2022, 2023, 2024 Jose Antonio Ortega Ruiz
 -- License: BSD3-style (see LICENSE)
 --
 -- Maintainer: jao@gnu.org
@@ -116,7 +116,7 @@ usage = usageInfo header options ++ footer
 
 info :: String
 info = "xmobar " ++ showVersion version
-        ++ "\n (C) 2010 - 2023 Jose A Ortega Ruiz"
+        ++ "\n (C) 2010 - 2024 Jose A Ortega Ruiz"
         ++ "\n (C) 2007 - 2010 Andrea Rossato\n "
         ++ mail ++ "\n" ++ license ++ "\n"
 
