@@ -26,7 +26,7 @@ output, in a variety of formats.
 
 [[file:doc/screenshots/xmobar-exwm.png]]
 
-Check [[src/branch/master/changelog.md][the change log]] for our release history.  We also have an IRC
+Check [[https://codeberg.org/xmobar/xmobar/src/branch/master/changelog.md][the change log]] for our release history.  We also have an IRC
 channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
 
 * Breaking news
@@ -43,9 +43,9 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
     should be mostly transparent, except for the facts that it's allowed
     fixing quite a few bugs and that your /font names/ in your configuration, if
     you used ~xft~ ones, might need to be adapted to Pango's syntax: please see
-    [[src/branch/master/doc/quick-start.org#fonts][this section of the documentation]] for all the details.  If you're
+    [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/quick-start.org#fonts][this section of the documentation]] for all the details.  If you're
     compiling your own xmobar, there's a new dependency on libpango (see
-    [[src/branch/master/doc/compiling.org#c-libraries][C library dependencies]]).
+    [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/compiling.org#c-libraries][C library dependencies]]).
 
 * Installation
   :PROPERTIES:
@@ -90,7 +90,7 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
 ** Using cabal or stack
 
    Xmobar is available from [[http://hackage.haskell.org/package/xmobar/][Hackage]], and you can compile and install it using
-   =cabal-install=, making sure the [[src/branch/master/doc/compiling.org#c-libraries][required C libraries]] are in place. For a
+   =cabal-install=, making sure the [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/compiling.org#c-libraries][required C libraries]] are in place. For a
    full build with all available extensions:
 
    #+begin_src shell
@@ -108,7 +108,7 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
    See [[src/branch/master/doc/compiling.org#optional-features][here]] for a list of optional compilation flags that will enable some
    optional plugins.
 
-   See [[src/branch/master/doc/compiling.org][compiling]] for full compilation instructions starting from source.
+   See [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/compiling.org][compiling]] for full compilation instructions starting from source.
 
 * Running xmobar
 ** Running xmobar with a configuration file
@@ -129,7 +129,7 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
    or =~/.xmobarrc=.
 
    All the available command line switches and configuration parameters are
-   described in [[src/branch/master/doc/quick-start.org][the quick start guide]] and [[src/branch/master/doc/plugins.org][the plugins index]].
+   described in [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/quick-start.org][the quick start guide]] and [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/plugins.org][the plugins index]].
 
 ** Writing your own xmobar in Haskell
 
@@ -147,24 +147,24 @@ channel, ~#xmobar~, at [[ircs://irc.libera.chat][Libera]].
    it is possible to redirect xmobar's output to the standard output,
    optionally with color escape sequences.  In this mode, xmobar can be run
    inside a terminal o console, or its output piped to other applications, and
-   there is no need for an X11 display.  See [[src/branch/master/doc/quick-start.org#text-mode][Running xmobar in text mode]] for
-   details.  Using this mode, you could [[src/branch/master/doc/quick-start.org#wayland][pipe xmobar's output to, say, swaybar]],
-   and use it in wayland, or, with the [[src/branch/master/etc/xmobar.el][xmobar.el]] package, show it in Emacs's
+   there is no need for an X11 display.  See [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/quick-start.org#text-mode][Running xmobar in text mode]] for
+   details.  Using this mode, you could [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/quick-start.org#wayland][pipe xmobar's output to, say, swaybar]],
+   and use it in wayland, or, with the [[https://codeberg.org/xmobar/xmobar/src/branch/master/etc/xmobar.el][xmobar.el]] package, show it in Emacs's
    tab bar.
 
 * Configuration and further documentation
 
   - If you want to jump straight into running xmobar, head over to the
-    [[src/branch/master/doc/quick-start.org][quick start guide]].
+    [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/quick-start.org][quick start guide]].
 
   - If you want to get a detailed overview of all available plugins and
-    monitors, visit the [[src/branch/master/doc/plugins.org][plugins index]].
+    monitors, visit the [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/plugins.org][plugins index]].
 
   - For more information on how to use xmobar as a Haskell library see the
-    [[src/branch/master/doc/using-haskell.org][using Haskell guide]].
+    [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/using-haskell.org][using Haskell guide]].
 
   - If you want to know how to contribute to the xmobar project, check out
-    [[src/branch/master/contributing.org][contributing]].
+    [[https://codeberg.org/xmobar/xmobar/src/branch/master/doc/contributing.org][contributing]].
 
 * Authors and credits
 
