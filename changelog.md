@@ -1,3 +1,7 @@
+## Version 0.48 (unreleased)
+
+- The `Kbd` monitor is not clickable (thanks, Enrico Maria)
+
 ## Version 0.47.4 (March, 2024)
 
 - Bug fixes (launching processes from self-compiled instances)
