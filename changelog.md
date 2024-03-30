@@ -1,6 +1,7 @@
 ## Version 0.48 (unreleased)
 
 - The `Kbd` monitor is not clickable (thanks, Enrico Maria)
+- Fix zombie processes left by `<action>` tag and low battery action
 
 ## Version 0.47.4 (March, 2024)
 

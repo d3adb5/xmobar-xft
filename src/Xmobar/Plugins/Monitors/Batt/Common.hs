@@ -18,7 +18,7 @@ module Xmobar.Plugins.Monitors.Batt.Common (BattOpts(..)
                                            , Status(..)
                                            , maybeAlert) where
 
-import System.Process (spawnCommand)
+import System.Process (spawnCommand, waitForProcess)
 import Control.Monad (unless, void)
 import Xmobar.Plugins.Monitors.Common
 
@@ -54,4 +54,4 @@ maybeAlert opts left =
   case onLowAction opts of
     Nothing -> return ()
     Just x -> unless (isNaN left || actionThreshold opts < 100 * left)
-                $ void $ spawnCommand x
+                $ void $ spawnCommand (x ++ " &") >>= waitForProcess
