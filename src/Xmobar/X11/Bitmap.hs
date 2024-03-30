@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  X11.Bitmap
--- Copyright   :  (C) 2013, 2015, 2017, 2018, 2022 Alexander Polakov
+-- Copyright   :  (C) 2013, 2015, 2017, 2018, 2022, 2024 Alexander Polakov
 -- License     :  BSD3
 --
 -- Maintainer  :  jao@gnu.org
@@ -116,8 +116,9 @@ loadBitmap d w p = do
 drawBitmap :: Display -> Drawable -> GC -> String -> String
               -> Position -> Position -> Bitmap -> IO ()
 drawBitmap d p gc fc bc x y i =
-  withColors d [fc, bc] $ \[fc', bc'] -> do
-    let w = width i
+  withColors d [fc, bc] $ \cs -> do
+    let (fc', bc') = (head cs, cs !! 1)
+        w = width i
         h = height i
         y' = 1 + y - fromIntegral h `div` 2
     setForeground d gc fc'

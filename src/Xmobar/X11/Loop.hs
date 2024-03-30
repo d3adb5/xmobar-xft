@@ -3,7 +3,7 @@
 ------------------------------------------------------------------------------
 -- |
 -- Module: Xmobar.App.X11EventLoop
--- Copyright: (c) 2018, 2020, 2022, 2023 Jose Antonio Ortega Ruiz
+-- Copyright: (c) 2018, 2020, 2022, 2023, 2024 Jose Antonio Ortega Ruiz
 -- License: BSD3-style (see LICENSE)
 --
 -- Maintainer: jao@gnu.org
@@ -149,8 +149,7 @@ signalLoop xc@(T.XConf d r w fs is cfg) actions signalv strs = do
 parseSegments :: C.Config -> STM.TVar [String] -> IO [[C.Segment]]
 parseSegments conf v = do
   s <- STM.readTVarIO v
-  let l:c:r:_ = s ++ repeat ""
-  return $ map (CT.parseString conf) [l, c, r]
+  return $ map (CT.parseString conf) (take 3 $ s ++ repeat "")
 
 updateIconCache :: T.XConf -> [[C.Segment]] -> IO T.XConf
 updateIconCache xc@(T.XConf d _ w _ c cfg) segs = do

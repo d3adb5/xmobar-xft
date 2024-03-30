@@ -3,7 +3,7 @@
 ------------------------------------------------------------------------------
 -- |
 -- Module: Xmobar.Plugins.Monitors.Strings
--- Copyright: (c) 2018, 2019, 2020, 2022 Jose Antonio Ortega Ruiz
+-- Copyright: (c) 2018, 2019, 2020, 2022, 2024 Jose Antonio Ortega Ruiz
 -- License: BSD3-style (see LICENSE)
 --
 -- Maintainer: jao@gnu.org
@@ -88,9 +88,9 @@ pShowWithColors p f x = do
 pColorizeString :: (Num a, Ord a, MonadIO m) => MonitorConfig -> a -> String -> m String
 pColorizeString p x s = do
     let col = pSetColor p s
-        [ll,hh] = map fromIntegral $ sort [pLow p, pHigh p] -- consider high < low
-    pure $ head $ [col pHighColor   | x > hh ] ++
-                  [col pNormalColor | x > ll ] ++
+        cols = map fromIntegral $ sort [pLow p, pHigh p] -- consider high < low
+    pure $ head $ [col pHighColor   | x > (cols !! 1) ] ++
+                  [col pNormalColor | x > head cols ] ++
                   [col pLowColor    | True]
 
 pSetColor :: MonitorConfig -> String -> PSelector (Maybe String) -> String
@@ -197,9 +197,9 @@ colorizeString x s = do
     h <- getConfigValue high
     l <- getConfigValue low
     let col = setColor s
-        [ll,hh] = map fromIntegral $ sort [l, h] -- consider high < low
-    head $ [col highColor   | x > hh ] ++
-           [col normalColor | x > ll ] ++
+        cols = map fromIntegral $ sort [l, h] -- consider high < low
+    head $ [col highColor   | x > cols !! 1 ] ++
+           [col normalColor | x > head cols ] ++
            [col lowColor    | True]
 
 showWithColors :: (Num a, Ord a) => (a -> String) -> a -> Monitor String
@@ -260,11 +260,11 @@ logScaling f v = do
   h <- fromIntegral `fmap` getConfigValue high
   l <- fromIntegral `fmap` getConfigValue low
   bw <- fromIntegral `fmap` getConfigValue barWidth
-  let [ll, hh] = sort [l, h]
+  let ws = sort [l, h]
       bw' = if bw > 0 then bw else 10
       scaled x | x == 0.0 = 0
-               | x <= ll = 1 / bw'
-               | otherwise = f + logBase 2 (x / hh) / bw'
+               | x <= head ws = 1 / bw'
+               | otherwise = f + logBase 2 (x / ws !! 1) / bw'
   return $ scaled v
 
 showLogBar :: Float -> Float -> Monitor String

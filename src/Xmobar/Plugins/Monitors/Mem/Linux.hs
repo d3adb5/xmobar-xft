@@ -25,9 +25,13 @@ parseMEM =
        let content = map words $ take 8 $ lines file
            info = M.fromList $ map (
              \line -> (head line, (read $ line !! 1 :: Float) / 1024)) content
-           [total, free, buffer, cache] =
-             map (info M.!) ["MemTotal:", "MemFree:", "Buffers:", "Cached:"]
-           available = M.findWithDefault (free + buffer + cache) "MemAvailable:" info
+           info' x = info M.! (x ++ ":")
+           total = info' "MemTotal"
+           free = info' "MemFree"
+           buffer = info' "Buffers"
+           cache = info' "Cached"
+           available =
+             M.findWithDefault (free + buffer + cache) "MemAvailable:" info
            used = total - available
            usedratio = used / total
            freeratio = free / total

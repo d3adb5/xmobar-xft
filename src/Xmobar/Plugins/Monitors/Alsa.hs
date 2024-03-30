@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Plugins.Monitors.Alsa
--- Copyright   :  (c) 2018 Daniel Schüssler
+-- Copyright   :  (c) 2018, 2024 Daniel Schüssler
 -- License     :  BSD-style (see LICENSE)
 --
 -- Maintainer  :  Jose A. Ortega Ruiz <jao@gnu.org>
@@ -25,6 +25,7 @@ import Control.Concurrent.Async
 import Control.Exception
 import Control.Monad
 import Data.IORef
+import Data.Maybe (fromJust)
 import Data.Time.Clock
 import Xmobar.Plugins.Monitors.Common
 import qualified Xmobar.Plugins.Monitors.Volume as Volume;
@@ -129,7 +130,8 @@ alsaReaderThread mixerName alsaCtlPath outputCallback mvar =
                       {std_out = CreatePipe}
 
       runAlsaOnce =
-        withCreateProcess createProc $ \_ (Just alsaOut) _ _ -> do
+        withCreateProcess createProc $ \_ out _ _ -> do
+          let alsaOut = fromJust out
           hSetBuffering alsaOut LineBuffering
 
           tryPutMVar mvar () -- Refresh immediately after restarting alsactl

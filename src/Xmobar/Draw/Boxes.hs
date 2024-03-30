@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 -- |
 -- Module: Xmobar.X11.Boxes
--- Copyright: (c) 2022 Jose Antonio Ortega Ruiz
+-- Copyright: (c) 2022, 2024 Jose Antonio Ortega Ruiz
 -- License: BSD3-style (see LICENSE)
 --
 -- Maintainer: jao@gnu.org
@@ -43,11 +43,10 @@ boxLines (T.Box bd offset lw _ margins) ht x0 x1 =
                  T.C -> (ma, -ma)
                  T.R -> (ma, 0)
     lc = fromIntegral lw / 2
-    [mt, mr, mb, ml] = map fromIntegral [top, right, bot, left]
-    xmin = x0 - ml - lc
-    xmax = x1 + mr + lc
-    ymin = mt + lc
-    ymax = ht - mb - lc
+    xmin = x0 - fromIntegral left - lc
+    xmax = x1 + fromIntegral right + lc
+    ymin = fromIntegral top + lc
+    ymax = ht - fromIntegral bot - lc
     rtop = (xmin + p0, ymin, xmax + p1, ymin)
     rbot = (xmin + p0, ymax, xmax + p1, ymax)
     rleft = (xmin, ymin + p0, xmin, ymax + p1)

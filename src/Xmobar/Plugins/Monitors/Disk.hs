@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Plugins.Monitors.Disk
--- Copyright   :  (c) 2010, 2011, 2012, 2014, 2018, 2019 Jose A Ortega Ruiz
+-- Copyright   :  (c) 2010-2012, 2014, 2018, 2019, 2024 Jose A Ortega Ruiz
 -- License     :  BSD-style (see LICENSE)
 --
 -- Maintainer  :  Jose A Ortega Ruiz <jao@gnu.org>
@@ -131,10 +131,9 @@ startDiskIO disks args rate cb = do
   runM args diskIOConfig (runDiskIO dref disks) rate cb
 
 runDiskU' :: DiskUOpts -> String -> [Integer] -> Monitor String
-runDiskU' opts tmp stat = do
+runDiskU' opts tmp (total:free:diff:_) = do
   setConfigValue tmp template
-  let [total, free, diff] = stat
-      strs = map sizeToStr [free, diff]
+  let strs = map sizeToStr [free, diff]
       freep = if total > 0 then free * 100 `div` total else 0
       fr = fromIntegral freep / 100
   s <- zipWithM showWithColors' strs [freep, 100 - freep]
@@ -146,6 +145,7 @@ runDiskU' opts tmp stat = do
   uvb <- showVerticalBar (fromIntegral $ 100 - freep) (1 - fr)
   uipat <- showIconPattern (usedIconPattern opts) (1 - fr)
   parseTemplate $ [sizeToStr total] ++ s ++ sp ++ [fb,fvb,fipat,ub,uvb,uipat]
+runDiskU' _ _ _ = return ""
 
 runDiskU :: [(String, String)] -> [String] -> Monitor String
 runDiskU disks argv = do

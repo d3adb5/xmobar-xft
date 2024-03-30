@@ -47,7 +47,10 @@ isUp d = flip catchIOError (const $ return False) $ do
   return $! (head . B.lines) operstate `elem` ["up", "unknown"]
 
 readNetDev :: [String] -> IO NetDevRawTotal
-readNetDev ~[d, x, y] = do
+readNetDev ds = do
+  let (d, x, y) = case ds of
+        d':x':y':_ -> (d', x', y')
+        _          -> ("", "", "")
   up <- unsafeInterleaveIO $ isUp d
   return $ N d (if up then ND (r x) (r y) else NI)
     where r s | s == "" = 0

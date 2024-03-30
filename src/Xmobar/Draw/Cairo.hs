@@ -2,7 +2,7 @@
 ------------------------------------------------------------------------------
 -- |
 -- Module: Xmobar.X11.Cairo
--- Copyright: (c) 2022, 2023 Jose Antonio Ortega Ruiz
+-- Copyright: (c) 2022, 2023, 2024 Jose Antonio Ortega Ruiz
 -- License: BSD3-style (see LICENSE)
 --
 -- Maintainer: jao@gnu.org
@@ -169,21 +169,22 @@ drawCairoBackground dctx surf = do
 
 drawSegments :: T.DrawContext -> Surface -> IO T.Actions
 drawSegments dctx surf = do
-  let [left, center, right] = take 3 $ T.dcSegments dctx ++ repeat []
+  let segs = take 3 $ T.dcSegments dctx ++ repeat []
       dh = T.dcHeight dctx
       dw = T.dcWidth dctx
       conf = T.dcConfig dctx
       sWidth = foldl (\a (_,_,w) -> a + w) 0
   ctx <- Pango.cairoCreateContext Nothing
   Pango.cairoContextSetResolution ctx $ C.dpi conf
-  llyts <- mapM (withRenderinfo ctx dctx) left
-  rlyts <- mapM (withRenderinfo ctx dctx) right
-  clyts <- mapM (withRenderinfo ctx dctx) center
+  llyts <- mapM (withRenderinfo ctx dctx) (head segs)
+  rlyts <- mapM (withRenderinfo ctx dctx) (segs !! 2)
+  clyts <- mapM (withRenderinfo ctx dctx) (segs !! 1)
 #ifndef XRENDER
   drawCairoBackground dctx surf
 #endif
   (lend, as, bx) <- foldM (drawSegment dctx surf dw) (0, [], []) llyts
-  let [rw, cw] = map sWidth [rlyts, clyts]
+  let rw = sWidth rlyts
+      cw = sWidth clyts
       rstart = max lend (dw - rw)
       cstart = if lend > 1 || rw == 0 then max lend ((dw - cw) / 2.0) else lend
   (_, as', bx') <- if cw > 0
