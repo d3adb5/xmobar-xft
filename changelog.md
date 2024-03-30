@@ -5,6 +5,7 @@
   Ulrik)
 - Fix plugins such as `Alsa` and `Com` not working when configuration is
   recompiled (#657, ditto)
+- New `Lock'` monitor with configurable labels (thanks, Enrico Maria)
 
 ## Version 0.47.4 (March, 2024)
 
