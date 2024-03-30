@@ -2,6 +2,8 @@
 
 - The `Kbd` monitor is not clickable (thanks, Enrico Maria)
 - Fix zombie processes left by `<action>` tag and low battery action
+- Fix plugins such as `Alsa` and `Com` not working when configuration is
+  recompiled (#657)
 
 ## Version 0.47.4 (March, 2024)
 

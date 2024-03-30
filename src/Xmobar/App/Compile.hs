@@ -20,20 +20,17 @@
 module Xmobar.App.Compile(recompile, trace, xmessage) where
 
 import Control.Monad.IO.Class
-import Control.Monad.Fix (fix)
-import Control.Exception.Extensible (try, bracket, SomeException(..))
+import Control.Exception.Extensible (bracket, SomeException(..))
 import qualified Control.Exception.Extensible as E
 import Control.Monad (filterM, when)
 import Data.List ((\\))
-import Data.Maybe (isJust)
 import System.FilePath((</>), takeExtension)
 import System.IO
 import System.Directory
 import System.Process
 import System.Exit
-import System.Posix.Process(executeFile, forkProcess, getAnyProcessStatus)
+import System.Posix.Process(executeFile, forkProcess)
 import System.Posix.Types(ProcessID)
-import System.Posix.Signals
 
 isExecutable :: FilePath -> IO Bool
 isExecutable f =
@@ -144,14 +141,12 @@ recompile confDir dataDir execName force verb = liftIO $ do
           else shouldRecompile verb src bin lib
     if sc
       then do
-        uninstallSignalHandlers
         status <- bracket (openFile err WriteMode) hClose $
                     \errHandle ->
                       waitForProcess =<<
                         if useScript
                         then runScript script bin confDir errHandle
                         else runGHC bin confDir errHandle
-        installSignalHandlers
         if status == ExitSuccess
             then trace verb "Xmobar recompilation process exited with success!"
             else do
@@ -174,21 +169,3 @@ recompile confDir dataDir execName force verb = liftIO $ do
                   ++ ["-o", bin]
        runGHC bin = runProc "ghc" (opts bin)
        runScript script bin = runProc script [bin]
-
--- | Ignore SIGPIPE to avoid termination when a pipe is full, and SIGCHLD to
--- avoid zombie processes, and clean up any extant zombie processes.
-installSignalHandlers :: MonadIO m => m ()
-installSignalHandlers = liftIO $ do
-    installHandler openEndedPipe Ignore Nothing
-    installHandler sigCHLD Ignore Nothing
-    (try :: IO a -> IO (Either SomeException a))
-      $ fix $ \more -> do
-        x <- getAnyProcessStatus False False
-        when (isJust x) more
-    return ()
-
-uninstallSignalHandlers :: MonadIO m => m ()
-uninstallSignalHandlers = liftIO $ do
-    installHandler openEndedPipe Default Nothing
-    installHandler sigCHLD Default Nothing
-    return ()
