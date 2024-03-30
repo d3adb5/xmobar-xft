@@ -204,6 +204,7 @@ library
                   colour >= 2.3.6,
                   containers,
                   directory,
+                  extra,
                   extensible-exceptions == 0.1.*,
                   filepath,
                   mtl >= 2.1 && < 2.4,

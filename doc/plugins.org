@@ -698,16 +698,35 @@
       #+begin_src haskell
         Run Brightness ["-t", "<bar>"] 60
       #+end_src
+
 *** =Locks=
 
     - Displays the status of Caps Lock, Num Lock and Scroll Lock.
 
     - Aliases to =locks=
 
+    - Contructors:
+
+        - =Locks= is nullary and uses the strings =CAPS=, =NUM=, =SCROLL= to signal
+          that a lock is enabled (and empty strings to signal it's disabled)
+
+        - =Locks'= allow customizing the strings for the enabled/disabled states
+          of the 3 locks by accepting an assoc list of type =[(String, (String, String))]=,
+          which is expected to contain exactly 3 elements with keys
+          ="CAPS"=, ="NUM"=, ="SCROLL"=.
+
     - Example:
 
       #+begin_src haskell
+        -- using default labels
         Run Locks
+      #+end_src
+
+      #+begin_src haskell
+        -- using custom labels
+        Run $ Locks' [("CAPS"  , ("<fc=#00ff00>\xf023</fc>", "<fc=#777777>\xf09c</fc>") )
+                     ,("NUM"   , ("<fc=#777777>\xf047</fc>", "<fc=#00ff00>\xf047</fc>" ) )
+                     ,("SCROLL", ("SlOCK", "" ))]
       #+end_src
 
 ** Load and Process monitors
