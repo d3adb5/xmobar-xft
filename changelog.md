@@ -1,3 +1,5 @@
+## Version 0.49 (unreleased)
+
 ## Version 0.48 (April, 2024)
 
 - The `Kbd` monitor is now clickable (thanks, Enrico Maria)
