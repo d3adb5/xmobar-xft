@@ -1,5 +1,5 @@
 name:               xmobar
-version:            0.49
+version:            0.48.1
 homepage:           https://codeberg.org/xmobar/xmobar
 synopsis:           A Minimalistic Text Based Status Bar
 description: 	    Xmobar is a minimalistic text based status bar.

@@ -1,4 +1,7 @@
-## Version 0.49 (unreleased)
+## Version 0.48.1 (May, 2024)
+
+- Removing for now mouse support for `Kbd`, which can be recovered by
+  interested users using regular actions (see issue #703 for further details).
 
 ## Version 0.48 (April, 2024)
 
