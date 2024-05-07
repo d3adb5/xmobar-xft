@@ -658,9 +658,8 @@
 ** Keyboard and screen monitors
 *** =Kbd Opts=
 
-    - Registers to XKB/X11-Events, output the currently active keyboard
-      layout, and maps left and right clicks to switching to next and
-      previous layouts respectively. Supports replacement of layout names.
+    - Registers to XKB/X11-Events and output the currently active keyboard
+      layout. Supports replacement of layout names.
 
     - Aliases to =kbd=
 
