@@ -1,0 +1,462 @@
+name: xmobar
+version: 0.44.3
+github: d3adb5/xmobar-xft
+license: BSD
+author: jaor
+maintainer: me@d3adb5.net
+
+synopsis: A minimalistic text-based status bar
+category: System
+description: Please see the README on GitHub or the original project on codeberg
+
+ghc-options:
+  - -funbox-strict-fields
+  - -fno-warn-unused-do-bind
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  - -O2
+  - -j
+
+flags:
+  with_xft:
+    description: Use Xft to render text. UTF-8 support included.
+    default: false
+    manual: false
+  with_inotify:
+    description: inotify support (modern Linux only). Required for the Mail and MBox plugins.
+    default: false
+    manual: false
+  with_iwlib:
+    description: Wireless info support via Wext ioctls (deprecated). Required for the Wireless plugin, needs iwlib installed.
+    default: false
+    manual: false
+  with_nl80211:
+    description: Wireless info support via nl80211. Required for the Wireless plugin on systems running Linux, the kernel.
+    default: false
+    manual: false
+  with_mpd:
+    description: MPD support. Needs libmpd installed.
+    default: false
+    manual: false
+  all_extensions:
+    description: Includes all optional extensions.
+    default: false
+    manual: false
+  with_alsa:
+    description: Use alsa-mixer to get the volume from soundcards.
+    default: false
+    manual: false
+  with_datezone:
+    description: Enables localized date support.
+    default: false
+    manual: false
+  with_mpris:
+    description: MPRIS v1, v2 support.
+    default: false
+    manual: false
+  with_dbus:
+    description: Publish a service on the session bus for controlling xmobar.
+    default: false
+    manual: false
+  with_xpm:
+    description: Enable usage of xpm for icons.
+    default: false
+    manual: false
+  with_threaded:
+    description: Use threaded runtime. Required for timer coalescing (less power usage).
+    default: false
+    manual: false
+  with_rtsopts:
+    description: Use -with-rtsopts=-V0 to reduce wakeups.
+    default: true
+    manual: false
+  with_uvmeter:
+    description: UVMeter only useful to australians.
+    default: false
+    manual: false
+  with_weather:
+    description: Enable weather plugin.
+    default: true
+    manual: false
+  with_kraken:
+    description: Enable Kraken plugin.
+    default: false
+    manual: false
+
+library:
+  source-dirs: src
+
+  exposed-modules:
+    - Xmobar
+    - Xmobar.Plugins.Monitors.Common.Types
+    - Xmobar.Plugins.Monitors.Common.Run
+    - Xmobar.Plugins.Monitors.Common
+    - Xmobar.Plugins.Monitors.Cpu
+
+  other-modules:
+    - Paths_xmobar
+    - Xmobar.Config.Types
+    - Xmobar.Config.Parse
+    - Xmobar.Run.Types
+    - Xmobar.Run.Timer
+    - Xmobar.Run.Template
+    - Xmobar.Run.Exec
+    - Xmobar.Run.Runnable
+    - Xmobar.Run.Actions
+    - Xmobar.Run.Parsers
+    - Xmobar.Run.Loop
+    - Xmobar.App.Config
+    - Xmobar.App.Main
+    - Xmobar.App.Opts
+    - Xmobar.App.Compile
+    - Xmobar.System.Utils
+    - Xmobar.System.StatFS
+    - Xmobar.System.Environment
+    - Xmobar.System.Localize
+    - Xmobar.System.Signal
+    - Xmobar.System.Kbd
+    - Xmobar.Text.Ansi
+    - Xmobar.Text.Loop
+    - Xmobar.Text.Pango
+    - Xmobar.Text.Swaybar
+    - Xmobar.Text.SwaybarClicks
+    - Xmobar.Text.Output
+    - Xmobar.X11.Events
+    - Xmobar.X11.Loop
+    - Xmobar.X11.Types
+    - Xmobar.X11.Text
+    - Xmobar.X11.Bitmap
+    - Xmobar.X11.ColorCache
+    - Xmobar.X11.Window
+    - Xmobar.X11.Draw
+    - Xmobar.Plugins.Command
+    - Xmobar.Plugins.BufferedPipeReader
+    - Xmobar.Plugins.CommandReader
+    - Xmobar.Plugins.Date
+    - Xmobar.Plugins.EWMH
+    - Xmobar.Plugins.HandleReader
+    - Xmobar.Plugins.QueueReader
+    - Xmobar.Plugins.PipeReader
+    - Xmobar.Plugins.MarqueePipeReader
+    - Xmobar.Plugins.StdinReader
+    - Xmobar.Plugins.XMonadLog
+    - Xmobar.Plugins.Kbd
+    - Xmobar.Plugins.Locks
+    - Xmobar.Plugins.NotmuchMail
+    - Xmobar.Plugins.Monitors
+    - Xmobar.Plugins.Monitors.Batt
+    - Xmobar.Plugins.Monitors.Batt.Common
+    - Xmobar.Plugins.Monitors.Common.Output
+    - Xmobar.Plugins.Monitors.Common.Parsers
+    - Xmobar.Plugins.Monitors.Common.Files
+    - Xmobar.Plugins.Monitors.CoreTemp
+    - Xmobar.Plugins.Monitors.K10Temp
+    - Xmobar.Plugins.Monitors.Cpu.Common
+    - Xmobar.Plugins.Monitors.CpuFreq
+    - Xmobar.Plugins.Monitors.Disk
+    - Xmobar.Plugins.Monitors.Disk.Common
+    - Xmobar.Plugins.Monitors.Load
+    - Xmobar.Plugins.Monitors.Load.Common
+    - Xmobar.Plugins.Monitors.Mem
+    - Xmobar.Plugins.Monitors.MultiCoreTemp
+    - Xmobar.Plugins.Monitors.MultiCpu
+    - Xmobar.Plugins.Monitors.Net
+    - Xmobar.Plugins.Monitors.Net.Common
+    - Xmobar.Plugins.Monitors.Swap
+    - Xmobar.Plugins.Monitors.Thermal
+    - Xmobar.Plugins.Monitors.ThermalZone
+    - Xmobar.Plugins.Monitors.Top
+    - Xmobar.Plugins.Monitors.Top.Common
+    - Xmobar.Plugins.Monitors.Uptime
+    - Xmobar.Plugins.Monitors.Bright
+    - Xmobar.Plugins.Monitors.CatInt
+
+  dependencies:
+    - X11 >= 1.6.1
+    - aeson >= 1.4.7.1
+    - async
+    - base >= 4.11.0 && < 5
+    - bytestring >= 0.10.8.2
+    - containers
+    - directory
+    - extensible-exceptions == 0.1.*
+    - filepath
+    - mtl >= 2.1 && < 3
+    - old-locale
+    - parsec == 3.1.*
+    - parsec-numbers >= 0.1.0
+    - process
+    - regex-compat
+    - stm >= 2.3 && < 2.6
+    - time
+    - transformers
+    - unix
+    - utf8-string >= 0.3 && < 1.1
+  extra-libraries:
+    - Xrandr
+    - Xrender
+  when:
+    - condition: impl(ghc < 8.0.2)
+      dependencies:
+        - unsupported-ghc-version > 1 && < 1
+
+    - condition: flag(with_threaded)
+      cpp-options:
+        - -DTHREADED_RUNTIME
+
+    - condition: flag(with_rtsopts)
+      cpp-options:
+        - -DRTSOPTS
+
+    - condition: flag(with_xft) || flag(all_extensions)
+      dependencies:
+        - utf8-string >= 0.3 && < 1.1
+        - X11-xft >= 0.2 && < 0.4
+      other-modules:
+        - Xmobar.X11.MinXft
+      cpp-options:
+        - -DXFT
+
+    - condition: flag(with_inotify) || flag(all_extensions)
+      dependencies:
+        - hinotify >= 0.3 && < 0.5
+      other-modules:
+        - Xmobar.Plugins.Mail
+        - Xmobar.Plugins.MBox
+      cpp-options:
+        - -DINOTIFY
+
+    - condition: flag(with_iwlib) || flag(with_nl80211) || flag(all_extensions)
+      other-modules:
+        - Xmobar.Plugins.Monitors.Wireless
+
+    - condition: flag(with_iwlib)
+      extra-libraries:
+        - iw
+      dependencies:
+        - iwlib >= 0.1.0 && < 0.2
+      cpp-options:
+        - -DIWLIB
+
+    - condition: "!flag(with_iwlib) && (flag(with_nl80211) || flag(all_extensions))"
+      dependencies:
+        - netlink >= 1.1.1.0
+        - cereal >= 0.5.8.1
+      cpp-options:
+        - -DUSE_NL80211
+
+    - condition: flag(with_mpd) || flag(all_extensions)
+      dependencies:
+        - libmpd >= 0.9.2.0
+      other-modules:
+        - Xmobar.Plugins.Monitors.MPD
+      cpp-options:
+        - -DLIBMPD
+
+    - condition: flag(with_alsa) || flag(all_extensions)
+      dependencies:
+        - alsa-mixer >= 0.3 && < 0.4
+        - alsa-core == 0.5.*
+        - process >= 1.4.3.0
+      other-modules:
+        - Xmobar.Plugins.Monitors.Volume
+        - Xmobar.Plugins.Monitors.Alsa
+      cpp-options:
+        - -DALSA
+
+    - condition: flag(with_datezone) || flag(all_extensions)
+      dependencies:
+        - timezone-olson >= 0.2 && < 0.3
+        - timezone-series == 0.1.*
+      other-modules:
+        - Xmobar.Plugins.DateZone
+      cpp-options:
+        - -DDATEZONE
+
+    - condition: flag(with_mpris) || flag(all_extensions)
+      dependencies:
+        - dbus >= 1
+      other-modules:
+        - Xmobar.Plugins.Monitors.Mpris
+      cpp-options:
+        - -DMPRIS
+
+    - condition: flag(with_dbus) || flag(all_extensions)
+      dependencies:
+        - dbus >= 1
+      other-modules:
+        - Xmobar.System.DBus
+      cpp-options:
+        - -DDBUS
+
+    - condition: flag(with_xpm) || flag(all_extensions)
+      extra-libraries:
+        - Xpm
+      other-modules:
+        - Xmobar.X11.XPMFile
+      cpp-options:
+        - -DXPM
+
+    - condition: flag(with_weather) || flag(all_extensions)
+      dependencies:
+        - http-conduit
+        - http-types
+        - http-client-tls
+      other-modules:
+        - Xmobar.Plugins.Monitors.Weather
+      cpp-options:
+        - -DWEATHER
+
+    - condition: flag(with_uvmeter)
+      dependencies:
+        - http-conduit
+        - http-types
+      other-modules:
+        - Xmobar.Plugins.Monitors.UVMeter
+      cpp-options:
+        - -DUVMETER
+
+    - condition: flag(with_kraken)
+      dependencies:
+        - aeson == 1.5.6.*
+        - text == 1.2.4.*
+        - unordered-containers == 0.2.14.*
+        - vector == 0.12.3.*
+        - wuss == 1.1.*
+        - websockets == 0.12.*
+      other-modules:
+        - Xmobar.Plugins.Kraken
+      cpp-options:
+        - -DKRAKEN
+
+    - condition: os(freebsd)
+      then:
+        extra-libraries:
+          - procstat
+          - kvm
+          - geom
+        dependencies:
+          - bsd-sysctl
+        other-modules:
+          - Xmobar.Plugins.Monitors.Batt.FreeBSD
+          - Xmobar.Plugins.Monitors.Cpu.FreeBSD
+          - Xmobar.Plugins.Monitors.Disk.FreeBSD
+          - Xmobar.Plugins.Monitors.Load.FreeBSD
+          - Xmobar.Plugins.Monitors.Mem.FreeBSD
+          - Xmobar.Plugins.Monitors.Net.FreeBSD
+          - Xmobar.Plugins.Monitors.Swap.FreeBSD
+          - Xmobar.Plugins.Monitors.Top.FreeBSD
+          - Xmobar.Plugins.Monitors.Uptime.FreeBSD
+      else:
+        other-modules:
+          - Xmobar.Plugins.Monitors.Batt.Linux
+          - Xmobar.Plugins.Monitors.Cpu.Linux
+          - Xmobar.Plugins.Monitors.Disk.Linux
+          - Xmobar.Plugins.Monitors.Load.Linux
+          - Xmobar.Plugins.Monitors.Mem.Linux
+          - Xmobar.Plugins.Monitors.Net.Linux
+          - Xmobar.Plugins.Monitors.Swap.Linux
+          - Xmobar.Plugins.Monitors.Top.Linux
+          - Xmobar.Plugins.Monitors.Uptime.Linux
+
+executables:
+  xmobar:
+    main: Main.hs
+    source-dirs: app
+    dependencies:
+      - X11
+      - async
+      - base
+      - containers
+      - directory
+      - filepath
+      - parsec
+      - unix
+      - xmobar
+    when:
+      - condition: flag(with_rtsopts)
+        ghc-options:
+          - -with-rtsopts=-V0
+
+      - condition: flag(with_threaded)
+        ghc-options:
+          - -threaded
+        cpp-options:
+          - -DTHREADED_RUNTIME
+
+tests:
+  XmobarTest:
+    main: Spec.hs
+    source-dirs:
+      - src
+      - test
+    dependencies:
+      - X11
+      - async
+      - base
+      - bytestring
+      - containers
+      - directory
+      - filepath
+      - hspec == 2.*
+      - mtl
+      - old-locale
+      - parsec
+      - parsec-numbers
+      - process
+      - regex-compat
+      - stm
+      - temporary
+      - time
+      - transformers
+      - unix
+      - xmobar
+    other-modules:
+      - Xmobar.Plugins.Monitors.CommonSpec
+      - Xmobar.Plugins.Monitors.Common
+      - Xmobar.Plugins.Monitors.Common.Parsers
+      - Xmobar.Plugins.Monitors.Common.Types
+      - Xmobar.Plugins.Monitors.Common.Output
+      - Xmobar.Plugins.Monitors.Common.Files
+      - Xmobar.Plugins.Monitors.Cpu
+      - Xmobar.Plugins.Monitors.Cpu.Common
+      - Xmobar.Plugins.Monitors.CpuSpec
+      - Xmobar.Plugins.Monitors.Common.Run
+      - Xmobar.Run.Exec
+      - Xmobar.Run.Timer
+      - Xmobar.System.Signal
+
+    when:
+      - condition: flag(with_alsa) || flag(all_extensions)
+        dependencies:
+          - alsa-mixer
+          - alsa-core
+          - process >= 1.4.3.0
+        other-modules:
+          - Xmobar.Plugins.Monitors.Volume
+          - Xmobar.Plugins.Monitors.Alsa
+          - Xmobar.Plugins.Monitors.AlsaSpec
+        cpp-options:
+          - -DALSA
+
+      - condition: os(freebsd)
+        then:
+          dependencies:
+            - bsd-sysctl
+          other-modules:
+            - Xmobar.Plugins.Monitors.Cpu.FreeBSD
+        else:
+          other-modules:
+            - Xmobar.Plugins.Monitors.Cpu.Linux
+
+benchmarks:
+  xmobarbench:
+    main: main.hs
+    source-dirs: bench
+    dependencies:
+      - base
+      - gauge
+      - mtl
+      - time
+      - xmobar

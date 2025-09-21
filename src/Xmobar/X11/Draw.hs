@@ -21,6 +21,7 @@
 module Xmobar.X11.Draw (drawInWin) where
 
 import Prelude hiding (lookup)
+import Control.Monad (when)
 import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Control.Arrow ((&&&))

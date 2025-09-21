@@ -18,6 +18,7 @@
 module Xmobar.Plugins.EWMH (EWMH(..)) where
 
 import Control.Applicative (Applicative(..))
+import Control.Monad (forever, liftM2)
 import Control.Monad.State
 import Control.Monad.Reader
 import Graphics.X11 hiding (Modifier, Color)

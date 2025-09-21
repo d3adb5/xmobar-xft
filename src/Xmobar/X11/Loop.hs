@@ -25,6 +25,7 @@ import Graphics.X11.Xinerama
 import Graphics.X11.Xrandr
 
 import Control.Arrow ((&&&))
+import Control.Monad (forever, void, when)
 import Control.Monad.Reader
 import Control.Concurrent
 import Control.Concurrent.STM
